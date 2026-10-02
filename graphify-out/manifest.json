@@ -1,10 +1,4 @@
 {
-  "DB SQL/local-dmoneydb-202604201925.sql": {
-    "mtime": 1790960909.1088567,
-    "seen": 1790962752.4675124,
-    "ast_hash": "85b2ed73f94af1eabeb09ef8ac29491e",
-    "semantic_hash": "85b2ed73f94af1eabeb09ef8ac29491e"
-  },
   "dmoney-transaction-api/.claude/settings.json": {
     "mtime": 1790488820.18295,
     "seen": 1790962752.4675145,
@@ -970,5 +964,89 @@
     "seen": 1790962752.4676235,
     "ast_hash": "a2760511c65806022ad20adf74370ff3",
     "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "class_notes/1. ai-quality-engineering-architecture.md": {
+    "mtime": 1790843564.4307446,
+    "seen": 1790966255.800425,
+    "ast_hash": "3a1d930d9f9acf03ff3091b38c072496",
+    "semantic_hash": ""
+  },
+  "class_notes/2.ai-driven-quality-engineering-overview.md": {
+    "mtime": 1790844470.5579798,
+    "seen": 1790966255.8004265,
+    "ast_hash": "2fe0ebc46a3afa689640ed492cd57c1b",
+    "semantic_hash": ""
+  },
+  "class_notes/3. software-testing-architecture-claude.md": {
+    "mtime": 1790844828.1724489,
+    "seen": 1790966255.8004284,
+    "ast_hash": "490f938a30c79096363ba3af559510af",
+    "semantic_hash": ""
+  },
+  "class_notes/4. graphify_serena_overview.md": {
+    "mtime": 1790844862.7514942,
+    "seen": 1790966255.80043,
+    "ast_hash": "2ce4392a4fc2f03a384d59109a2a1552",
+    "semantic_hash": ""
+  },
+  "class_notes/5. ai-agents-bug-discovery-guide.md": {
+    "mtime": 1790844889.4325292,
+    "seen": 1790966255.800431,
+    "ast_hash": "1f2e5278607978dc12f0abeecaa97268",
+    "semantic_hash": ""
+  },
+  "class_notes/6. ai-agent-testing-framework.md": {
+    "mtime": 1790844420.2889137,
+    "seen": 1790966255.8004322,
+    "ast_hash": "a4b7595e77855dca438f2edc828f66b3",
+    "semantic_hash": ""
+  },
+  "dmoney-transaction-api/.artifacts/blast-radius-vs-graphify.report.md": {
+    "mtime": 1790966203.3902688,
+    "seen": 1790966255.800433,
+    "ast_hash": "08bed45342401fa6881b7b561a1001fb",
+    "semantic_hash": ""
+  },
+  "dmoney-transaction-api/.artifacts/transaction-limits.report.md": {
+    "mtime": 1790965814.929263,
+    "seen": 1790966255.800482,
+    "ast_hash": "9a706a6bce473e7e9e4aedac8fd42901",
+    "semantic_hash": ""
+  },
+  "class_notes/1.NotebookLM Mind Map.png": {
+    "mtime": 1790843581.2427688,
+    "seen": 1790966255.8024664,
+    "ast_hash": "50e07d1d8b62fd79b5273271898c2df0",
+    "semantic_hash": ""
+  },
+  "class_notes/2.NotebookLM Mind Map.png": {
+    "mtime": 1790844486.4350007,
+    "seen": 1790966255.8024678,
+    "ast_hash": "92536d44b09ca7ae405a6f1b0d9cb8e1",
+    "semantic_hash": ""
+  },
+  "class_notes/3. NotebookLM Mind Map.png": {
+    "mtime": 1790844840.7089677,
+    "seen": 1790966255.802474,
+    "ast_hash": "7fd5f34b7af5fd95cd8e80d1b92313ec",
+    "semantic_hash": ""
+  },
+  "class_notes/4. NotebookLM Mind Map.png": {
+    "mtime": 1790844874.4625096,
+    "seen": 1790966255.8024752,
+    "ast_hash": "9e85c850f2c58137d01fcea30a251ddc",
+    "semantic_hash": ""
+  },
+  "class_notes/5.NotebookLM Mind Map.png": {
+    "mtime": 1790844903.3815475,
+    "seen": 1790966255.8024764,
+    "ast_hash": "a38d11be9456ca115db40fefc0ad709c",
+    "semantic_hash": ""
+  },
+  "class_notes/6.NotebookLM Mind Map.png": {
+    "mtime": 1790844397.3018837,
+    "seen": 1790966255.8024774,
+    "ast_hash": "91f368288a8c8eaf86fcc55199ed503e",
+    "semantic_hash": ""
   }
 }
