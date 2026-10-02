@@ -72,6 +72,82 @@ You only need a Stripe test account if you want to use the bank cash-in feature.
 
 ---
 
+## Installation guide
+
+These steps set up dMoney on a fresh Windows machine. On Linux or macOS the steps are the same, except that you install MySQL with your package manager and don't need to edit `PATH`.
+
+### 1. Install the tools
+
+1. Install [Node.js](https://nodejs.org/) if you don't have it.
+2. Install [VS Code](https://code.visualstudio.com/) if you don't have it.
+3. Install [MySQL Server 8.0](https://dev.mysql.com/downloads/mysql/8.0.html) (version 8.0.36) if you don't have it.
+   - Add the MySQL `bin` folder to the system `PATH` environment variable:
+     ```
+     C:\Program Files\MySQL\MySQL Server 8.0\bin
+     ```
+   - Open a new Command Prompt and check that it works:
+     ```cmd
+     mysql --version
+     ```
+4. Install [DBeaver](https://dbeaver.io/download/) and connect it to your MySQL server. Any MySQL client works, for example Beekeeper Studio.
+
+### 2. Get the code
+
+Clone both projects:
+
+```bash
+git clone https://github.com/salmansrabon/dmoney-transaction-api
+git clone https://github.com/salmansrabon/dmoney-web-react
+```
+
+If you are using this workspace, both projects are already here and you can skip this step.
+
+### 3. Create and restore the database
+
+1. In DBeaver, create a database named `dmoneydb`:
+   ```sql
+   CREATE DATABASE dmoneydb;
+   ```
+2. Download the [database dump](https://drive.google.com/file/d/1RFlK1bm6vpKPT-C2lmeUCfWVqa15vLWU/view?usp=drive_link) and restore it into `dmoneydb`. In DBeaver, right-click `dmoneydb` and choose **Tools → Restore database**, or open the `.sql` file in a SQL editor and run it.
+
+> **Restoring on Linux or macOS?** The dump was exported on Windows, so its table names are lowercase (`users`, `transactions`, ...). Linux MySQL treats table names as case-sensitive, but the API expects `Users`, `Transactions`, `Commissions`, `Roles` and `TransactionLimits`. Fix the names before you import the dump:
+>
+> ```bash
+> sed -E 's/`commissions`/`Commissions`/g; s/`roles`/`Roles`/g; s/`transactionlimits`/`TransactionLimits`/g; s/`transactions`/`Transactions`/g; s/`users`/`Users`/g' dump.sql > dump-fixed.sql
+> mysql -u root -p dmoneydb < dump-fixed.sql
+> ```
+>
+> Restoring the dump is optional. If `dmoneydb` is empty, the API creates the tables and seeds the [test accounts](#test-accounts) on first start.
+
+### 4. Configure and run the backend
+
+1. In `dmoney-transaction-api`, create a `.env` file and copy the contents of `.env.example` into it. Set `DB_USER` and `DB_PASSWORD` to match your MySQL login.
+2. Create a Gmail app password at <https://myaccount.google.com/apppasswords>. You must turn on 2-Step Verification before Google lets you create one.
+3. In `.env`, set `EMAIL_USER` to your Gmail address and `EMAIL_PASS` to the app password.
+4. Sign up for [Stripe](https://dashboard.stripe.com/register) and set `STRIPE_SECRET_KEY` to your own test secret key.
+5. Install and run:
+   ```bash
+   npm install
+   npm run dev
+   ```
+6. The API is now running at <http://localhost:5000>.
+
+### 5. Configure and run the frontend
+
+1. In `dmoney-web-react`, create a `.env` file and copy the contents of `.env.example` into it.
+2. Set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` to your own Stripe test publishable key.
+3. Install, build and run:
+   ```bash
+   npm install
+   npm run build
+   npm run dev
+   ```
+4. Open <http://localhost:3000/> in your browser.
+
+The sections below explain each part of the setup in more detail.
+
+---
+
 ## Getting started
 
 ### 1. Create the database
