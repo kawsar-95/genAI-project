@@ -17,7 +17,8 @@ r2sdet_AI/
 │   ├── services/             # Balance, limits, email, transaction-ID helpers
 │   ├── migrations/           # One-off, idempotent schema scripts
 │   ├── swagger/              # OpenAPI specs (user + transaction)
-│   ├── qa-findings/          # Documented bugs, test cases, security findings
+│   ├── qa-findings/          # Documented bugs, test cases, charters, security findings
+│   ├── .artifacts/           # AI-generated test cases and analysis reports
 │   └── endpoints.md          # Authoritative endpoint catalog with curl examples
 │
 ├── dmoney-web-react/         # Frontend: Next.js 15 (App Router) + TypeScript + MUI + Tailwind 4
@@ -29,7 +30,13 @@ r2sdet_AI/
 │   ├── dmoney-reactjs/       # Legacy Create React App version (reference only)
 │   └── README.md             # Full Business Requirements Document (BRD)
 │
-└── .claude/skills/           # Workspace-level Claude Code skills
+├── sql_scripts/              # MySQL dump of dmoneydb (schema + seed data)
+├── class_notes/              # Course notes and NotebookLM mind maps on AI-driven QA
+├── graphify-out/             # graphify knowledge graph (graph.json, graph.html, GRAPH_REPORT.md)
+├── .serena/                  # Serena project config and memories (also one per subproject)
+├── .claude/skills/           # Workspace-level Claude Code skills
+├── GRAPHIFY_SETUP.md         # How to install graphify and its git hooks
+└── SERENA_SETUP.md           # How to install Serena and its Claude Code hooks
 ```
 
 ---
@@ -70,6 +77,8 @@ For the full business rules (validation, limits, fees, error codes), read the BR
 
 You only need a Stripe test account if you want to use the bank cash-in feature. SMTP or Gmail credentials are optional, because OTPs and reset tokens are also printed to the API console.
 
+The AI tooling is optional too. [uv](https://docs.astral.sh/uv/) and [Claude Code](https://claude.com/claude-code) are only needed for [graphify and Serena](#ai-code-intelligence-graphify-and-serena).
+
 ---
 
 ## Installation guide
@@ -108,13 +117,14 @@ If you are using this workspace, both projects are already here and you can skip
    ```sql
    CREATE DATABASE dmoneydb;
    ```
-2. Download the [database dump](https://drive.google.com/file/d/1RFlK1bm6vpKPT-C2lmeUCfWVqa15vLWU/view?usp=drive_link) and restore it into `dmoneydb`. In DBeaver, right-click `dmoneydb` and choose **Tools → Restore database**, or open the `.sql` file in a SQL editor and run it.
+2. Restore the database dump into `dmoneydb`. The dump is in this repo at [`sql_scripts/local-dmoneydb-202604201925.sql`](sql_scripts/local-dmoneydb-202604201925.sql), and you can also [download it from Google Drive](https://drive.google.com/file/d/1RFlK1bm6vpKPT-C2lmeUCfWVqa15vLWU/view?usp=drive_link). In DBeaver, right-click `dmoneydb` and choose **Tools → Restore database**, or open the `.sql` file in a SQL editor and run it.
 
 > **Restoring on Linux or macOS?** The dump was exported on Windows, so its table names are lowercase (`users`, `transactions`, ...). Linux MySQL treats table names as case-sensitive, but the API expects `Users`, `Transactions`, `Commissions`, `Roles` and `TransactionLimits`. Fix the names before you import the dump:
 >
 > ```bash
-> sed -E 's/`commissions`/`Commissions`/g; s/`roles`/`Roles`/g; s/`transactionlimits`/`TransactionLimits`/g; s/`transactions`/`Transactions`/g; s/`users`/`Users`/g' dump.sql > dump-fixed.sql
-> mysql -u root -p dmoneydb < dump-fixed.sql
+> sed -E 's/`commissions`/`Commissions`/g; s/`roles`/`Roles`/g; s/`transactionlimits`/`TransactionLimits`/g; s/`transactions`/`Transactions`/g; s/`users`/`Users`/g' \
+>   sql_scripts/local-dmoneydb-202604201925.sql > /tmp/dmoneydb-fixed.sql
+> mysql -u root -p dmoneydb < /tmp/dmoneydb-fixed.sql
 > ```
 >
 > Restoring the dump is optional. If `dmoneydb` is empty, the API creates the tables and seeds the [test accounts](#test-accounts) on first start.
@@ -266,9 +276,13 @@ X-AUTH-SECRET-KEY: ROADTOSDET
 | [`qa-findings/02-deposit-bugs.md`](dmoney-transaction-api/qa-findings/02-deposit-bugs.md) | Deposit / cash-in bugs |
 | [`qa-findings/03-deposit-test-cases.md`](dmoney-transaction-api/qa-findings/03-deposit-test-cases.md) | Deposit test cases |
 | [`qa-findings/04-security-vulnerabilities.md`](dmoney-transaction-api/qa-findings/04-security-vulnerabilities.md) | 11 confirmed security issues with repro steps and suggested fixes |
+| [`qa-findings/05-deposit-test-charters.md`](dmoney-transaction-api/qa-findings/05-deposit-test-charters.md) | 6 exploratory test charters for deposit / cash-in, plus a session report template |
+| [`qa-findings/06-deposit-cash-in-test-design.md`](dmoney-transaction-api/qa-findings/06-deposit-cash-in-test-design.md) | 64 deposit / cash-in test cases traced to 17 requirement highlights, prioritised High / Mid / Low |
 | [`.artifacts/otp.test.md`](dmoney-transaction-api/.artifacts/otp.test.md) | OTP two-step login test cases |
+| [`.artifacts/transaction-limits.report.md`](dmoney-transaction-api/.artifacts/transaction-limits.report.md) | How customer daily / monthly limits are enforced, and the gaps found |
+| [`.artifacts/blast-radius-vs-graphify.report.md`](dmoney-transaction-api/.artifacts/blast-radius-vs-graphify.report.md) | Comparison of the `blast-radius` skill and the graphify graph for impact analysis |
 
-Before you report a new finding, check these files to see whether it is already known.
+Before you report a new finding, check these files to see whether it is already known. The charters (05) and test cases (06) were designed from the code and have not been run yet.
 
 ---
 
@@ -282,6 +296,8 @@ The workspace includes [Claude Code](https://claude.com/claude-code) skills for 
 |---|---|
 | `blast-radius` | Traces the full dependency impact of changes against `main` and produces a risk-ranked retest report |
 | `understand-task` | Explains a GitHub issue/PR or Jira ticket and pulls out its acceptance criteria as a table |
+| `test-charter` | Writes session-based exploratory test charters (mission, risks, heuristics, oracles, time-box) and session reports |
+| `test-design` | Designs traceable test cases in three sections: Requirement Highlights, Test Cases, and Prioritized Test Titles |
 
 **Per project** (`dmoney-transaction-api/.claude/` and `dmoney-web-react/.claude/`)
 
@@ -294,8 +310,39 @@ The workspace includes [Claude Code](https://claude.com/claude-code) skills for 
 | `analyze-rootcause` | Finds the most likely root cause from logs and errors |
 | `explain-code` | Explains code flow and business behaviour from the source |
 | `qa-agent` / `qa-agent-advocate` | Full ticket-to-tests analysis, plus an adversarial reviewer |
+| `graphify` | Queries the workspace knowledge graph (see below) |
 
 Each project also has a `CLAUDE.md` that gives AI assistants architecture notes and conventions.
+
+---
+
+## AI code intelligence: graphify and Serena
+
+Two optional tools give Claude Code a map of the codebase, so it reads fewer files and makes fewer wrong guesses about how code connects.
+
+| Tool | Level | What it gives you | Setup |
+|---|---|---|---|
+| [graphify](https://pypi.org/project/graphifyy/) | Architecture | A knowledge graph of code and docs in [`graphify-out/`](graphify-out/). Open `graph.html` in a browser, read `GRAPH_REPORT.md`, or run `graphify explain "X"` and `graphify path "A" "B"` | [`GRAPHIFY_SETUP.md`](GRAPHIFY_SETUP.md) |
+| [Serena](https://github.com/oraios/serena) | Symbol | Language-server tools over MCP: find symbol, find references, rename, symbol-level edits, and project memories in [`.serena/memories/`](.serena/memories/) | [`SERENA_SETUP.md`](SERENA_SETUP.md) |
+
+The graph is already committed, so you don't need to build it after cloning. You do need to run `graphify hook install` after every fresh clone, because git hooks and the `merge.graphify` driver live in `.git/` and are not pushed. The hooks rebuild the graph after each commit and branch switch, and `.gitattributes` makes `graph.json` union-merge instead of conflicting. Set `GRAPHIFY_SKIP_HOOK=1` to skip the rebuild for one commit.
+
+Serena is registered for the root and for each subproject. Only the root project has been onboarded, so only it has memories.
+
+---
+
+## Class notes
+
+[`class_notes/`](class_notes/) holds course notes on AI-driven quality engineering. Each note comes with a NotebookLM mind map.
+
+| # | Topic |
+|---|---|
+| 1 | [AI quality engineering architecture](class_notes/1.%20ai-quality-engineering-architecture.md) |
+| 2 | [AI-driven quality engineering overview](class_notes/2.ai-driven-quality-engineering-overview.md) |
+| 3 | [Software testing architecture with Claude](class_notes/3.%20software-testing-architecture-claude.md) |
+| 4 | [graphify and Serena overview](class_notes/4.%20graphify_serena_overview.md) |
+| 5 | [AI agents for bug discovery](class_notes/5.%20ai-agents-bug-discovery-guide.md) |
+| 6 | [AI agent testing framework](class_notes/6.%20ai-agent-testing-framework.md) |
 
 ---
 
