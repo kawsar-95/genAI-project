@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/graphify-prehook.sh\"",
+            "timeout": 45,
+            "statusMessage": "Querying graphify..."
+          },
+          {
+            "type": "mcp_tool",
+            "server": "plugin:serena:serena",
+            "tool": "activate_project",
+            "input": { "project": "r2sdet_AI", "session_id": "${session_id}" },
+            "timeout": 30,
+            "statusMessage": "Activating Serena project..."
+          }
+        ]
+      }
+    ]
+  }
+}
