@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# Playwright artefacts (regenerated on every run)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright-mcp/
+
+# generated test output (a sample is committed under docs/sample)
+output/*
+!output/.gitkeep
+
+# local config / secrets
+.env
+.env.*
+
+# OS / editor noise
+.DS_Store
+*.log
+.vscode/
+.idea/
