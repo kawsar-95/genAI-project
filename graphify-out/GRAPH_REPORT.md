@@ -1,24 +1,24 @@
 # Graph Report - r2sdet_AI  (2026-10-03)
 
 ## Corpus Check
-- 153 files · ~677,411 words
+- 174 files · ~702,150 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 11 file(s) not represented in the graph (top: (none) 4, .css 3, .example 2)
+- Unclassified: 15 file(s) not represented in the graph (top: (none) 8, .css 3, .example 2)
 
 ## Summary
-- 1080 nodes · 1948 edges · 56 communities (54 shown, 2 thin omitted)
-- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 167 edges (avg confidence: 0.89)
+- 1153 nodes · 2028 edges · 74 communities (71 shown, 3 thin omitted)
+- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 178 edges (avg confidence: 0.9)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7522a164`
+- Built from commit: `3d688b86`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - test-design Skill
 - DashboardLayout
-- ref_react
+- App.js
 - dmoney-reactjs/package.json
 - dmoney-web-react/package.json
 - test-design Skill
@@ -26,7 +26,7 @@
 - user.controller.js
 - dmoney-web-react/public/manifest.json
 - API_ENDPOINTS.md
-- getBalance.js
+- Users.js
 - dmoney-transaction-api CLAUDE.md
 - Endpoint Catalog (endpoints.md)
 - Graphify & Serena: Advanced Code Analysis, Dependency Mapping, and AI Test Engineering
@@ -37,7 +37,7 @@
 - compilerOptions
 - AI Agent Testing & Test Automation Framework Implementation
 - forgotPassword.controller.js
-- Security Findings: Vulnerability Review
+- Bug Findings: Login Authorization
 - Architecting AI Systems for Advanced Quality Engineering
 - limitChecker.js
 - app.js
@@ -49,15 +49,15 @@
 - user.route.js
 - emailHelper.js
 - gmailPersonalHelper.js
-- User Management API Swagger Spec
+- OTP Dev Bypass (?env=dev + DEFAULT_OTP 0000)
 - transaction.route.js
 - app/page.tsx
-- Users.js
+- adminDeposit.controller.js
 - hashPassword
 - payment.controller.js
 - sendMoney.controller.js
 - Test Cases: Deposit / Cash-In
-- Two-step OTP login flow
+- login/page.tsx
 - default.route.js
 - swagger.js
 - Comprehensive Architecture & Workflow Guide: Agentic Software Testing with Claude AI
@@ -71,7 +71,25 @@
 - AI-Driven Quality Engineering: Project Setup, Knowledge Graphs & Change Impact Analysis
 - Report — Blast Radius vs Graphify
 - Report — Customer Transaction Limits
-- Self-Statement with client-side date filter and running balance
+- DashboardLayout.tsx
+- confirmCashIn
+- Session Log — 2026-10-03
+- User Management API Swagger Spec
+- Steps
+- Security Findings: Vulnerability Review
+- ref_react
+- next
+- Customer daily/monthly outgoing limits
+- profile/page.tsx
+- @mui/icons-material
+- ref_mui_material
+- transactions/page.tsx
+- cash-in-bank/page.tsx
+- [userId]/page.tsx
+- playwright
+- customer/payment/page.tsx
+- merchant/cash-out/page.tsx
+- graphify-prehook.sh
 
 ## God Nodes (most connected - your core abstractions)
 1. `DMoney BRD (README.md)` - 41 edges
@@ -86,16 +104,16 @@
 10. `qa-agent-advocate Agent` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `2. Serena: code relationships (mandatory)` --references--> `getBalance()`  [INFERRED]
+  .claude/skills/find-bug/SKILL.md → dmoney-transaction-api/services/getBalance.js
+- `CASHIN-L07` --references--> `AdminDeposit()`  [INFERRED]
+  dmoney-transaction-api/qa-findings/07-cash-in-bugs.md → dmoney-web-react/src/app/admin/deposit/page.tsx
 - `Graphify results (run 2026-10-03)` --references--> `Withdraw()`  [INFERRED]
   dmoney-transaction-api/.artifacts/blast-radius-vs-graphify.report.md → dmoney-web-react/dmoney-reactjs/src/components/Withdraw.js
-- `Deposit (Cash-In via Agent)` --references--> `handleDeposit()`  [INFERRED]
-  dmoney-web-react/README.md → dmoney-transaction-api/controllers/transactions/deposit.controller.js
-- `Payment to Merchant (with discount code)` --references--> `handlePayment()`  [INFERRED]
-  dmoney-web-react/README.md → dmoney-transaction-api/controllers/transactions/payment.controller.js
-- `Send Money (P2P)` --references--> `handleSendMoney()`  [INFERRED]
-  dmoney-web-react/README.md → dmoney-transaction-api/controllers/transactions/sendMoney.controller.js
-- `Withdraw (Cash-Out)` --references--> `handleWithdraw()`  [INFERRED]
-  dmoney-web-react/README.md → dmoney-transaction-api/controllers/transactions/withdraw.controller.js
+- `Bank Cash-In via Stripe` --references--> `confirmCashIn()`  [INFERRED]
+  dmoney-web-react/README.md → dmoney-transaction-api/controllers/transactions/stripeCashIn.controller.js
+- `Bank Cash-In via Stripe` --references--> `createPaymentIntent()`  [INFERRED]
+  dmoney-web-react/README.md → dmoney-transaction-api/controllers/transactions/stripeCashIn.controller.js
 
 ## Import Cycles
 - None detected.
@@ -116,19 +134,19 @@
 - **CRA default React branding assets (atom logo set)** — dmoney_web_react_dmoney_reactjs_public_logo192, dmoney_web_react_dmoney_reactjs_public_logo512, dmoney_web_react_dmoney_reactjs_src_logo [INFERRED 0.95]
 - **OTP two-step login flow** — readme_two_step_otp_login, dmoney_transaction_api__artifacts_otp_test_post_user_login, dmoney_transaction_api__artifacts_otp_test_post_user_verify_otp, dmoney_transaction_api__artifacts_otp_test_loginuser, dmoney_transaction_api__artifacts_otp_test_verifyotp, dmoney_transaction_api__artifacts_otp_test_validatelogindata [INFERRED 0.95]
 
-## Communities (56 total, 2 thin omitted)
+## Communities (74 total, 3 thin omitted)
 
 ### Community 0 - "test-design Skill"
 Cohesion: 0.06
 Nodes (54): qa-agent Agent, adversarial-agent, qa-agent-advocate Agent, Bug Review Verdicts (REJECTED_FALSE_POSITIVE to CONFIRMED_DEFECT), mcp__db-mcp__execute_query, mcp__jira-mcp__get_jira_ticket, Reasoning Error Classification, hris-web-automation repo (Shomvob HRIS Playwright suite) (+46 more)
 
 ### Community 1 - "DashboardLayout"
-Cohesion: 0.05
-Nodes (60): Default User Avatar Placeholder, nextConfig, AdminDeposit(), AdminDashboard(), AdminTransactions(), headerCellSx, ROLE_COLOR, Transaction (+52 more)
+Cohesion: 0.21
+Nodes (12): AdminDeposit(), CreateUser(), CashIn(), dashField, FieldErrors, ChangePassword(), dashField, FieldErrors (+4 more)
 
-### Community 2 - "ref_react"
-Cohesion: 0.09
-Nodes (34): Road to SDET Logo (API uploads), Road to SDET Logo (React public), App(), AdminDashboard(), CreateUser(), DashboardLayout(), Deposit(), Home() (+26 more)
+### Community 2 - "App.js"
+Cohesion: 0.12
+Nodes (23): Road to SDET Logo (API uploads), Road to SDET Logo (React public), App(), AdminDashboard(), CreateUser(), DashboardLayout(), Deposit(), Home() (+15 more)
 
 ### Community 3 - "dmoney-reactjs/package.json"
 Cohesion: 0.04
@@ -136,7 +154,7 @@ Nodes (45): browserslist, development, production, dependencies, axios, @emotion
 
 ### Community 4 - "dmoney-web-react/package.json"
 Cohesion: 0.05
-Nodes (40): dependencies, axios, @emotion/react, @emotion/styled, @mui/icons-material, @mui/material, next, react (+32 more)
+Nodes (42): dependencies, axios, @emotion/react, @emotion/styled, @mui/icons-material, @mui/material, next, react (+34 more)
 
 ### Community 5 - "test-design Skill"
 Cohesion: 0.12
@@ -147,28 +165,28 @@ Cohesion: 0.10
 Nodes (11): { sequelize }, { sequelize }, { sequelize }, { sequelize }, { sequelize }, { sequelize }, { sequelize }, { Sequelize } (+3 more)
 
 ### Community 7 - "user.controller.js"
-Cohesion: 0.08
-Nodes (15): fs, { hashPassword }, Joi, jwt, multer, path, { Roles }, { sendEmail } (+7 more)
+Cohesion: 0.07
+Nodes (17): mailer() SMTP vs Google service-account switch, fs, { hashPassword }, Joi, jwt, multer, path, { Roles } (+9 more)
 
 ### Community 8 - "dmoney-web-react/public/manifest.json"
 Cohesion: 0.09
 Nodes (18): Hand-rolled PWA (sw.js, manifest, PWAProvider), background_color, categories, description, display, icons, lang, name (+10 more)
 
 ### Community 9 - "API_ENDPOINTS.md"
-Cohesion: 0.20
-Nodes (16): DELETE /user/delete/{id}, GET /transaction/list (limit/offset), GET /user/list (count/page), GET /user/search/email/{email}, GET /user/search/id/{id}, GET /user/search/phonenumber/{phoneNumber}, GET /user/search/{role}, PATCH /user/update/{id} (+8 more)
+Cohesion: 0.17
+Nodes (19): DELETE /user/delete/{id}, GET /transaction/list (limit/offset), GET /transaction/statement, GET /user/list (count/page), GET /user/search/email/{email}, GET /user/search/id/{id}, GET /user/search/phonenumber/{phoneNumber}, GET /user/search/{role} (+11 more)
 
-### Community 10 - "getBalance.js"
-Cohesion: 0.12
-Nodes (12): { getBalance }, { Transactions }, { Users }, seedTransaction, { sequelize }, { Sequelize, DataTypes, Op }, Transactions, express (+4 more)
+### Community 10 - "Users.js"
+Cohesion: 0.10
+Nodes (14): { getBalance }, getBalanceByAccount(), { Transactions }, { Users }, { hashPassword }, predefinedUsers, { sequelize }, { Sequelize, DataTypes, Op } (+6 more)
 
 ### Community 11 - "dmoney-transaction-api CLAUDE.md"
-Cohesion: 0.18
-Nodes (12): dmoney-transaction-api CLAUDE.md, checkCustomerLimits (TransactionLimits daily/monthly caps), dMoney Mobile-Money Wallet System, Dual env loaders (.env.dev via custom-env vs .env via dotenv), getBalance.js string-concatenated SQL, GET /transaction/limit hardcoded to 10000 (known gap), No test runner configured (CI npm test will fail), Idempotent one-off migration scripts (+4 more)
+Cohesion: 0.16
+Nodes (15): dmoney-transaction-api CLAUDE.md, checkCustomerLimits (TransactionLimits daily/monthly caps), Commission.getConfig(transaction_type), Deposit Two Flows (SYSTEM->Agent vs Agent->Customer), dMoney Mobile-Money Wallet System, Dual env loaders (.env.dev via custom-env vs .env via dotenv), getBalance.js string-concatenated SQL, GET /transaction/limit hardcoded to 10000 (known gap) (+7 more)
 
 ### Community 12 - "Endpoint Catalog (endpoints.md)"
-Cohesion: 0.12
-Nodes (25): authenticateJWT middleware (JWT + X-AUTH-SECRET-KEY), Roles: SYSTEM, Admin, Agent, Customer, Merchant, Endpoint Catalog (endpoints.md), GET /transaction/balance/:account, GET /transaction/statement/:account, POST /transaction/adminDeposit, POST /transaction/payment, POST /transaction/sendmoney (+17 more)
+Cohesion: 0.14
+Nodes (20): Seeded / Protected System Accounts, Endpoint Catalog (endpoints.md), GET /transaction/balance/:account, GET /transaction/statement/:account, POST /transaction/adminDeposit, POST /transaction/payment, POST /transaction/sendmoney, POST /transaction/withdraw (+12 more)
 
 ### Community 13 - "Graphify & Serena: Advanced Code Analysis, Dependency Mapping, and AI Test Engineering"
 Cohesion: 0.10
@@ -187,8 +205,8 @@ Cohesion: 0.15
 Nodes (13): CLAUDE.md (dmoney-web-react guidance), Env config (NEXT_PUBLIC_API_URL, NEXT_PUBLIC_SECRET_KEY, Stripe key), localStorage session keys, No lint script, ESLint config or test runner (use tsc --noEmit), Repo-local .claude QA tooling copied from hris-web-automation, token cookie (JWT, max-age from exp), QUICK_START.md (stale Next.js migration guide), Manual testing workflow (login, profile, token expiry, direct access) (+5 more)
 
 ### Community 17 - "DMoney BRD (README.md)"
-Cohesion: 0.16
-Nodes (20): DMoney BRD (README.md), Admin Deposit to SYSTEM, API Endpoints Reference, Commissions table (DB-driven fees), Deposit (Cash-In via Agent), Error Handling & HTTP Status Codes, Fee & Commission Structure, Payment to Merchant (with discount code) (+12 more)
+Cohesion: 0.17
+Nodes (20): DMoney BRD (README.md), Account status lifecycle (pending/active/suspended), Admin Deposit to SYSTEM, API Endpoints Reference, Commissions table (DB-driven fees), Email notifications via Gmail API, Error Handling & HTTP Status Codes, Fee & Commission Structure (+12 more)
 
 ### Community 18 - "compilerOptions"
 Cohesion: 0.11
@@ -202,37 +220,37 @@ Nodes (18): 1. Architectural Overview & System Mental Model, 2. Core Differences
 Cohesion: 0.15
 Nodes (12): crypto, forgotPassword(), fs, { hashPassword }, mailer(), { Op }, path, { sendEmail } (+4 more)
 
-### Community 21 - "Security Findings: Vulnerability Review"
-Cohesion: 0.12
-Nodes (28): mailer() SMTP vs Google service-account switch, publicAuthenticateJWT middleware (JWT only, no partner key), GET /user/list, GET /user/uploads/:file, Bug Findings: Login Authorization, [Security] CORS allows any origin (High), [Auth] Default ACCESS_TOKEN_SECRET 'myaccesstokensecret' enables JWT forgery (Critical), [Auth] Email vs JWT identifier case-sensitivity inconsistency (Medium) (+20 more)
+### Community 21 - "Bug Findings: Login Authorization"
+Cohesion: 0.21
+Nodes (14): publicAuthenticateJWT middleware (JWT only, no partner key), GET /user/list, Bug Findings: Login Authorization, [Security] CORS allows any origin (High), [Auth] Default ACCESS_TOKEN_SECRET 'myaccesstokensecret' enables JWT forgery (Critical), [Auth] Email vs JWT identifier case-sensitivity inconsistency (Medium), [Security] JWT lacks iss/aud/kid; no rotation (Medium), [Security] /user/list and /user/search/* return password field (Critical) (+6 more)
 
 ### Community 22 - "Architecting AI Systems for Advanced Quality Engineering"
 Cohesion: 0.11
 Nodes (17): 1. The 3-Layer AI System Architecture, 2. Advanced Prompt Engineering: The 6-Factor Framework, 3. Core Architectural Pillars of Agentic QE, 4. Claude Code QE Repository Architecture, 5. LLM Model Allocation Strategy in Quality Engineering, 6. The Role of Model Context Protocol (MCP) in Modern Testing, A. Context Engineering, Architecting AI Systems for Advanced Quality Engineering (+9 more)
 
 ### Community 23 - "limitChecker.js"
-Cohesion: 0.16
-Nodes (15): 4. Same target, both tools, Blast Radius result (worked example in the skill), Graphify results (run 2026-10-03), 6. Gaps and risks found, { DataTypes }, { sequelize }, TransactionLimit, checkCustomerLimits() (+7 more)
+Cohesion: 0.22
+Nodes (7): { DataTypes }, { sequelize }, TransactionLimit, { Op, fn, col, literal }, OUTGOING_TYPES, { sequelize }, { TransactionLimit }
 
 ### Community 24 - "app.js"
 Cohesion: 0.15
 Nodes (12): app, cors, defaultRoutes, express, morgan, swaggerUi, {swaggerUserDocument,swaggerTrnxDocument,}, transactionRoutes (+4 more)
 
 ### Community 25 - "deposit.controller.js"
-Cohesion: 0.18
-Nodes (10): { Commission }, { generateTrnxId }, { getBalance }, { sequelize }, { Transaction }, { Transactions }, { Users }, Commission (+2 more)
+Cohesion: 0.20
+Nodes (8): { Commission }, { generateTrnxId }, { getBalance }, { sequelize }, { Transaction }, { Transactions }, { Users }, crypto
 
 ### Community 26 - "stripeCashIn.controller.js"
-Cohesion: 0.24
-Nodes (9): { Commission }, confirmCashIn(), createPaymentIntent(), findUserByIdentifier(), { getBalance }, Stripe, { Transactions }, { Users } (+1 more)
+Cohesion: 0.20
+Nodes (9): { Commission }, { getBalance }, Stripe, { Transactions }, { Users }, Commission, { DataTypes }, { sequelize } (+1 more)
 
 ### Community 27 - "withdraw.controller.js"
-Cohesion: 0.14
-Nodes (17): handleAdminDeposit(), handleDeposit(), handlePayment(), handleSendMoney(), getBalanceByAccount(), { checkCustomerLimits }, { Commission }, { generateTrnxId } (+9 more)
+Cohesion: 0.22
+Nodes (8): { checkCustomerLimits }, { Commission }, { generateTrnxId }, { getBalance }, { sequelize }, { Transaction }, { Transactions }, { Users }
 
 ### Community 28 - "Bug Findings: Deposit / Cash-In"
-Cohesion: 0.16
-Nodes (17): Commission.getConfig(transaction_type), Deposit Two Flows (SYSTEM->Agent vs Agent->Customer), POST /transaction/stripe/create-intent, POST /transaction/deposit, Bug Findings: Deposit / Cash-In, [Improvement] Commission returned as raw float, [Deposit] Commission ledger row credit/debit reads like over-debit (Medium), [Security] create-intent no rate limit (Medium) (+9 more)
+Cohesion: 0.19
+Nodes (13): POST /transaction/deposit, Bug Findings: Deposit / Cash-In, [Improvement] Commission returned as raw float, [Deposit] confirmCashIn trusts metadata.customer_phone (High), [Deposit] from_account taken from req.body not req.user (Low), [Security] Agent from_account spoofing risk (High), [Security] Limit endpoint no ownership check (Medium), [Deposit] No rate-limit / idempotency key on deposit (Medium) (+5 more)
 
 ### Community 29 - "dmoney-reactjs/public/manifest.json"
 Cohesion: 0.13
@@ -250,9 +268,9 @@ Nodes (9): auth, { google }, path, SCOPES, sendEmail(), SERVICE_ACCOUNT_FILE, { 
 Cohesion: 0.20
 Nodes (10): fs, { google }, nodemailer, path, SCOPES, sendPersonalEmail(), SERVICE_ACCOUNT_FILE, { sendPersonalEmail } (+2 more)
 
-### Community 33 - "User Management API Swagger Spec"
-Cohesion: 0.13
-Nodes (18): Two-step OTP Login, OTP Dev Bypass (?env=dev + DEFAULT_OTP 0000), Forgot/Reset Password Flow, POST /user/login, POST /user/register, POST /user/verify-otp, [Auth] Dev OTP bypass defeats Customer/Agent/Merchant 2FA (Critical), [Auth] ?env=dev honored without NODE_ENV gate (+10 more)
+### Community 33 - "OTP Dev Bypass (?env=dev + DEFAULT_OTP 0000)"
+Cohesion: 0.22
+Nodes (11): Two-step OTP Login, OTP Dev Bypass (?env=dev + DEFAULT_OTP 0000), POST /user/login, POST /user/verify-otp, [Auth] Dev OTP bypass defeats Customer/Agent/Merchant 2FA (Critical), [Auth] ?env=dev honored without NODE_ENV gate, [Improvement] Login response lacks consistent requiresOtp flag, Basic End-to-End Deposit Test (+3 more)
 
 ### Community 34 - "transaction.route.js"
 Cohesion: 0.18
@@ -262,29 +280,29 @@ Nodes (10): adminDepositController, { authenticateJWT }, depositController, expr
 Cohesion: 0.18
 Nodes (3): features, roles, stats
 
-### Community 36 - "Users.js"
+### Community 36 - "adminDeposit.controller.js"
 Cohesion: 0.18
-Nodes (10): { generateTrnxId }, { sequelize }, { Transaction }, { Transactions }, { Users }, { hashPassword }, predefinedUsers, { sequelize } (+2 more)
+Nodes (10): { generateTrnxId }, handleAdminDeposit(), { sequelize }, { Transaction }, { Transactions }, { Users }, seedTransaction, { sequelize } (+2 more)
 
 ### Community 37 - "hashPassword"
 Cohesion: 0.27
 Nodes (10): resetPassword(), createUser(), loginUser(), mailer(), partialUpdateUser(), registerUser(), updateUser(), validateRegistration() (+2 more)
 
 ### Community 38 - "payment.controller.js"
-Cohesion: 0.22
-Nodes (8): { checkCustomerLimits }, { Commission }, { generateTrnxId }, { getBalance }, { sequelize }, { Transaction }, { Transactions }, { Users }
+Cohesion: 0.13
+Nodes (22): 4. Same target, both tools, Blast Radius result (worked example in the skill), Graphify results (run 2026-10-03), 6. Gaps and risks found, handleDeposit(), { checkCustomerLimits }, { Commission }, { generateTrnxId } (+14 more)
 
 ### Community 39 - "sendMoney.controller.js"
 Cohesion: 0.22
 Nodes (8): { checkCustomerLimits }, { Commission }, { generateTrnxId }, { getBalance }, { sequelize }, { Transaction }, { Transactions }, { Users }
 
 ### Community 40 - "Test Cases: Deposit / Cash-In"
-Cohesion: 0.21
-Nodes (16): POST /transaction/stripe/confirm, [Deposit] confirmCashIn doesn't check customer active status (High), [Deposit] confirmCashIn trusts metadata.customer_phone (High), [Improvement] No Stripe webhook endpoint, Test Cases: Deposit / Cash-In, Deposit Acceptance Criteria AC-1..AC-10, Agent 2.5% Deposit Commission (AC-2), Concurrent deposits do not overdraw Agent (TC-022) (+8 more)
+Cohesion: 0.39
+Nodes (9): Test Cases: Deposit / Cash-In, Deposit Acceptance Criteria AC-1..AC-10, Agent 2.5% Deposit Commission (AC-2), Concurrent deposits do not overdraw Agent (TC-022), Customer Wallet Cap 10,000 BDT (AC-3), Deposit Min 10 / Max 10,000 BDT (AC-4), Reject deposit from another user's account (AC-8), Stripe Cash-in via PaymentIntent (AC-9) (+1 more)
 
-### Community 41 - "Two-step OTP login flow"
-Cohesion: 0.29
-Nodes (9): verifyOtp(), POST /user/login, Account status lifecycle (pending/active/suspended), Email notifications via Gmail API, Login page two-phase UI, Self-registration (Gmail-only, pending status), User Management Module (Admin-only CRUD), Users table data model (+1 more)
+### Community 41 - "login/page.tsx"
+Cohesion: 0.32
+Nodes (6): verifyOtp(), POST /user/login, Login page two-phase UI, darkField, Login(), LoginContent()
 
 ### Community 42 - "default.route.js"
 Cohesion: 0.29
@@ -330,28 +348,96 @@ Nodes (12): 1. Summary, 2. Side by side, 3. How each one works, 5. Strengths and
 Cohesion: 0.15
 Nodes (12): 1. Summary, 2. Configured values, 3. Who and what is limited, 4. How the check works, 5. Boundary behaviour, 8. Suggested test scenarios, Error response, Handy SQL (+4 more)
 
-### Community 55 - "Self-Statement with client-side date filter and running balance"
+### Community 55 - "DashboardLayout.tsx"
+Cohesion: 0.15
+Nodes (8): DashboardLayoutProps, ROLE_CONFIG, LeftMenu(), LeftMenuProps, MenuItem, ROLE_CONFIG, SelfStatement(), Transaction
+
+### Community 56 - "confirmCashIn"
+Cohesion: 0.08
+Nodes (28): confirmCashIn(), createPaymentIntent(), findUserByIdentifier(), Cash-In Module Bugs, CASHIN-H01, CASHIN-H02, CASHIN-H03, CASHIN-H04 (+20 more)
+
+### Community 57 - "Session Log — 2026-10-03"
+Cohesion: 0.08
+Nodes (24): 16:45 — First bug hunt, 16:47 — Save as a file, 16:50 — Rename, 16:51 — Were the tools used?, 17:33 — Asked again, more specifically, 17:51 — Spec for the skill (pasted), 17:57 — Run it on cash-in, 17:58 — Install agent-browser (separate session) (+16 more)
+
+### Community 58 - "User Management API Swagger Spec"
+Cohesion: 0.12
+Nodes (19): authenticateJWT middleware (JWT + X-AUTH-SECRET-KEY), Roles: SYSTEM, Admin, Agent, Customer, Merchant, GET /user/uploads/:file, Forgot/Reset Password Flow, POST /user/register, [Security] /user/uploads/:file path traversal (High), S-6 /user/uploads/:file path traversal, API Endpoints Summary (+11 more)
+
+### Community 59 - "Steps"
+Cohesion: 0.14
+Nodes (13): 10. Reply to the user, 1. Scope and known issues, 2. Serena: code relationships (mandatory), 3. graphify: domain knowledge (mandatory), 4. /blast-radius (mandatory), 5. Build candidates, 6. Reproduce: frontend first with agent-browser, 7. Fall back to API only when the UI can't reproduce (+5 more)
+
+### Community 60 - "Security Findings: Vulnerability Review"
+Cohesion: 0.25
+Nodes (13): POST /transaction/stripe/confirm, POST /transaction/stripe/create-intent, [Deposit] confirmCashIn doesn't check customer active status (High), [Security] create-intent no rate limit (Medium), Security Findings: Vulnerability Review, QA test-user rollback (DELETE Users WHERE name LIKE 'QA %'), Recommended Fix Priority (P0/P1/P2), S-10 No rate-limiting on create-intent (+5 more)
+
+### Community 61 - "ref_react"
+Cohesion: 0.18
+Nodes (7): darkField, darkField, darkSelect, roleInfo, darkField, ResetPasswordForm(), ResetPasswordPage()
+
+### Community 62 - "next"
+Cohesion: 0.22
+Nodes (5): nextConfig, CashOut(), dashField, FieldErrors, next
+
+### Community 63 - "Customer daily/monthly outgoing limits"
+Cohesion: 0.33
+Nodes (6): Deposit (Cash-In via Agent), Payment to Merchant (with discount code), Send Money (P2P), TransactionLimits table, Customer wallet balance cap (10,000 BDT), Withdraw (Cash-Out)
+
+### Community 64 - "profile/page.tsx"
+Cohesion: 0.33
+Nodes (6): Default User Avatar Placeholder, getPhotoUrl(), Profile(), ROLE_COLORS, STATUS_MAP, User
+
+### Community 65 - "@mui/icons-material"
+Cohesion: 0.29
+Nodes (5): AdminDashboard(), AgentPayment(), dashField, FieldErrors, @mui/icons-material
+
+### Community 66 - "ref_mui_material"
+Cohesion: 0.43
+Nodes (4): User, UserList(), Pagination(), PaginationProps
+
+### Community 67 - "transactions/page.tsx"
+Cohesion: 0.33
+Nodes (5): AdminTransactions(), headerCellSx, ROLE_COLOR, Transaction, UserInfo
+
+### Community 68 - "cash-in-bank/page.tsx"
+Cohesion: 0.40
+Nodes (5): CARD_ELEMENT_OPTIONS, CashInBank(), PaymentForm(), PaymentFormProps, stripePromise
+
+### Community 69 - "[userId]/page.tsx"
+Cohesion: 0.40
+Nodes (4): ROLE_COLORS, STATUS_MAP, UserData, UserProfile()
+
+### Community 70 - "playwright"
+Cohesion: 0.40
+Nodes (4): npx, jira, playwright, @playwright/mcp
+
+### Community 71 - "customer/payment/page.tsx"
 Cohesion: 0.50
-Nodes (4): GET /transaction/statement, Self-Statement with client-side date filter and running balance, Transaction Inquiry Module, SelfStatement()
+Nodes (3): dashField, FieldErrors, Payment()
+
+### Community 72 - "merchant/cash-out/page.tsx"
+Cohesion: 0.50
+Nodes (3): dashField, FieldErrors, MerchantCashOut()
 
 ## Ambiguous Edges - Review These
 - `authenticateJWT middleware (JWT + X-AUTH-SECRET-KEY)` → `X-AUTH-SECRET-KEY documented as only for user creation`  [AMBIGUOUS]
   dmoney-transaction-api/swagger/API_ENDPOINTS_SUMMARY.md · relation: conceptually_related_to
 - `authenticateJWT middleware (JWT + X-AUTH-SECRET-KEY)` → `Separate security list items (BearerAuth OR XAuthSecretKey)`  [AMBIGUOUS]
   dmoney-transaction-api/swagger/swaggerTrnx.yaml · relation: conceptually_related_to
-- `GET /user/uploads/:file` → `/user/uploads/:file documented as no authentication required`  [AMBIGUOUS]
-  dmoney-transaction-api/swagger/API_ENDPOINTS_SUMMARY.md · relation: conceptually_related_to
 - `Next.js migration progress (~20%)` → `QUICK_START.md is stale`  [AMBIGUOUS]
   dmoney-web-react/QUICK_START.md · relation: conceptually_related_to
+- `GET /user/uploads/:file` → `/user/uploads/:file documented as no authentication required`  [AMBIGUOUS]
+  dmoney-transaction-api/swagger/API_ENDPOINTS_SUMMARY.md · relation: conceptually_related_to
 - `dMoney MFS Platform` → `qa-agent Subagent (HRIS-scoped)`  [AMBIGUOUS]
   dmoney-transaction-api/.claude/agents/qa-agent.md · relation: conceptually_related_to
 - `GET /transaction/statement` → `Self-Statement with client-side date filter and running balance`  [AMBIGUOUS]
   dmoney-web-react/api_doc/API_ENDPOINTS.md · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **451 isolated node(s):** `Executive Summary`, `1. The 3-Layer AI System Architecture`, `2. Advanced Prompt Engineering: The 6-Factor Framework`, `A. Context Engineering`, `B. AI Harnessing` (+446 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 512 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **496 isolated node(s):** `Workspace`, `1. Scope and known issues`, `3. graphify: domain knowledge (mandatory)`, `4. /blast-radius (mandatory)`, `5. Build candidates` (+491 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 560 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -360,13 +446,13 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `authenticateJWT middleware (JWT + X-AUTH-SECRET-KEY)` and `Separate security list items (BearerAuth OR XAuthSecretKey)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **What is the exact relationship between `GET /user/uploads/:file` and `/user/uploads/:file documented as no authentication required`?**
-  _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `Next.js migration progress (~20%)` and `QUICK_START.md is stale`?**
+  _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
+- **What is the exact relationship between `GET /user/uploads/:file` and `/user/uploads/:file documented as no authentication required`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `dMoney MFS Platform` and `qa-agent Subagent (HRIS-scoped)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `GET /transaction/statement` and `Self-Statement with client-side date filter and running balance`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `DMoney BRD (README.md)` connect `DMoney BRD (README.md)` to `Two-step OTP login flow`, `Frontend role-based navigation menus`, `CLAUDE.md (dmoney-web-react guidance)`, `Self-Statement with client-side date filter and running balance`, `user.route.js`?**
+- **Why does `dmoney-transaction-api CLAUDE.md` connect `dmoney-transaction-api CLAUDE.md` to `OTP Dev Bypass (?env=dev + DEFAULT_OTP 0000)`, `user.controller.js`, `Test Cases: Deposit / Cash-In`, `Endpoint Catalog (endpoints.md)`, `Security Findings: Vulnerability Review`, `Bug Findings: Login Authorization`, `User Management API Swagger Spec`, `Bug Findings: Deposit / Cash-In`?**
   _High betweenness centrality (0.076) - this node is a cross-community bridge._

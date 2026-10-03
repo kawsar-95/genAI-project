@@ -648,10 +648,10 @@
     "semantic_hash": "bfc9ba76ae7892f8f4a9bf850a3dcfd0"
   },
   "README.md": {
-    "mtime": 1790961416.164573,
-    "seen": 1790962752.467592,
-    "ast_hash": "ce9bac8e2f181614a2699e5bb7a5fb06",
-    "semantic_hash": "ce9bac8e2f181614a2699e5bb7a5fb06"
+    "mtime": 1790975760.564816,
+    "seen": 1791044542.9038506,
+    "ast_hash": "1c6ba156d8aec20b38ebb28fe9466661",
+    "semantic_hash": ""
   },
   "dmoney-transaction-api/.artifacts/otp.test.md": {
     "mtime": 1790957117.2973607,
@@ -1047,6 +1047,156 @@
     "mtime": 1790844397.3018837,
     "seen": 1790966255.8024774,
     "ast_hash": "91f368288a8c8eaf86fcc55199ed503e",
+    "semantic_hash": ""
+  },
+  ".claude/hooks/graphify-prehook.sh": {
+    "mtime": 1791032317.812082,
+    "seen": 1791044542.903691,
+    "ast_hash": "25dd910d9e5c193d10c428ea6977d8b6",
+    "semantic_hash": ""
+  },
+  ".claude/settings.json": {
+    "mtime": 1791032332.070313,
+    "seen": 1791044542.903694,
+    "ast_hash": "55eeb2f158ec40ead6082c03bc70c650",
+    "semantic_hash": ""
+  },
+  ".claude/settings.local.json": {
+    "mtime": 1791040994.0132463,
+    "seen": 1791044542.9036953,
+    "ast_hash": "d80f85ffef940eb88891177f1d2b470e",
+    "semantic_hash": ""
+  },
+  ".mcp.json": {
+    "mtime": 1791043467.5983324,
+    "seen": 1791044542.903697,
+    "ast_hash": "53343ca5c4c2bed4023db3421549c460",
+    "semantic_hash": ""
+  },
+  "sql_scripts/local-dmoneydb-202604201925.sql": {
+    "mtime": 1790960909.1088567,
+    "seen": 1791044542.9038372,
+    "ast_hash": "85b2ed73f94af1eabeb09ef8ac29491e",
+    "semantic_hash": ""
+  },
+  ".claude/skills/find-bug/SKILL.md": {
+    "mtime": 1791028347.7215354,
+    "seen": 1791044542.9038396,
+    "ast_hash": "39858e77182827a109fdbbca1f16431a",
+    "semantic_hash": ""
+  },
+  ".claude/skills/test-charter/SKILL.md": {
+    "mtime": 1790973186.6307836,
+    "seen": 1791044542.9038403,
+    "ast_hash": "09591b42c66e10b0d1411643029d0913",
+    "semantic_hash": ""
+  },
+  ".claude/skills/test-design/SKILL.md": {
+    "mtime": 1790974579.1375818,
+    "seen": 1791044542.903841,
+    "ast_hash": "f56d42715e12d55dbf1b2685b04cf525",
+    "semantic_hash": ""
+  },
+  ".serena/memories/api/core.md": {
+    "mtime": 1790970612.6587245,
+    "seen": 1791044542.9038432,
+    "ast_hash": "2bd9308d03efb081ec7a7c5589dadbc8",
+    "semantic_hash": ""
+  },
+  ".serena/memories/conventions.md": {
+    "mtime": 1790970613.4958532,
+    "seen": 1791044542.9038439,
+    "ast_hash": "a02c0a73a173032a9d6002dc0d07c7e1",
+    "semantic_hash": ""
+  },
+  ".serena/memories/core.md": {
+    "mtime": 1790970612.424778,
+    "seen": 1791044542.9038444,
+    "ast_hash": "390e7355a4dcf75624b9704dc63bfcf4",
+    "semantic_hash": ""
+  },
+  ".serena/memories/memory_maintenance.md": {
+    "mtime": 1790970549.937287,
+    "seen": 1791044542.903845,
+    "ast_hash": "5a2422d8355cb91f16402415a54e3c66",
+    "semantic_hash": ""
+  },
+  ".serena/memories/suggested_commands.md": {
+    "mtime": 1790970613.2537787,
+    "seen": 1791044542.9038458,
+    "ast_hash": "fe9d8a90333a10ce3aa72b38e3a6e01b",
+    "semantic_hash": ""
+  },
+  ".serena/memories/task_completion.md": {
+    "mtime": 1790970613.7327793,
+    "seen": 1791044542.9038465,
+    "ast_hash": "32d101513b5baa2fe2739b1a4953c4f6",
+    "semantic_hash": ""
+  },
+  ".serena/memories/tech_stack.md": {
+    "mtime": 1790970613.1395977,
+    "seen": 1791044542.903847,
+    "ast_hash": "065c8036a17ebb03faea5f5e2a2d20e5",
+    "semantic_hash": ""
+  },
+  ".serena/memories/web/core.md": {
+    "mtime": 1790970612.903905,
+    "seen": 1791044542.903848,
+    "ast_hash": "35b526df7d73a1e4a6e353964a5a80d4",
+    "semantic_hash": ""
+  },
+  ".serena/project.yml": {
+    "mtime": 1790970339.6165054,
+    "seen": 1791044542.9038486,
+    "ast_hash": "e9058f4e8117e37b8079b8f6d02ea308",
+    "semantic_hash": ""
+  },
+  "GRAPHIFY_SETUP.md": {
+    "mtime": 1790966398.435655,
+    "seen": 1791044542.9038491,
+    "ast_hash": "be766c6a779e8da546674df9c914c661",
+    "semantic_hash": ""
+  },
+  "SERENA_SETUP.md": {
+    "mtime": 1790975339.4072962,
+    "seen": 1791044542.903851,
+    "ast_hash": "3f5969b697c8a57e22ca0c8ff90ce9dd",
+    "semantic_hash": ""
+  },
+  "SESSION-LOG-2026-10-03.md": {
+    "mtime": 1791044401.4581482,
+    "seen": 1791044542.9038517,
+    "ast_hash": "8e2ee591bc5df208b7f06c1c628fdfcd",
+    "semantic_hash": ""
+  },
+  "dmoney-transaction-api/.serena/project.yml": {
+    "mtime": 1790971762.3350167,
+    "seen": 1791044542.903877,
+    "ast_hash": "1aff7eecba1559947b7548f13d1e12f6",
+    "semantic_hash": ""
+  },
+  "dmoney-transaction-api/qa-findings/05-deposit-test-charters.md": {
+    "mtime": 1790973982.0750465,
+    "seen": 1791044542.9038851,
+    "ast_hash": "8ffff50f9d3865b2675c113fcad53a0c",
+    "semantic_hash": ""
+  },
+  "dmoney-transaction-api/qa-findings/06-deposit-cash-in-test-design.md": {
+    "mtime": 1790975117.7275834,
+    "seen": 1791044542.9038858,
+    "ast_hash": "31897640da7504f5217fa698826ed3d1",
+    "semantic_hash": ""
+  },
+  "dmoney-transaction-api/qa-findings/07-cash-in-bugs.md": {
+    "mtime": 1791031646.5992272,
+    "seen": 1791044542.9038866,
+    "ast_hash": "c5a57c8153ec2b2ab9fb4e4d4968641f",
+    "semantic_hash": ""
+  },
+  "dmoney-web-react/.serena/project.yml": {
+    "mtime": 1790971921.8102021,
+    "seen": 1791044542.9039042,
+    "ast_hash": "19855ca90fe84a1eac03a5194055d4cc",
     "semantic_hash": ""
   }
 }
