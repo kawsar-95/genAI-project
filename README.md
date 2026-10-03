@@ -298,6 +298,7 @@ The workspace includes [Claude Code](https://claude.com/claude-code) skills for 
 | `understand-task` | Explains a GitHub issue/PR or Jira ticket and pulls out its acceptance criteria as a table |
 | `test-charter` | Writes session-based exploratory test charters (mission, risks, heuristics, oracles, time-box) and session reports |
 | `test-design` | Designs traceable test cases in three sections: Requirement Highlights, Test Cases, and Prioritized Test Titles |
+| `execute-test` | Runs prepared test cases from a `<JIRA-ID>.test.md` file with `agent-browser` (UI) and `curl` (API) and writes `.artifacts/<JIRA-ID>.test-result.md`. Used by `test-executor-agent` ([`.claude/agents/`](.claude/agents/)) |
 
 **Per project** (`dmoney-transaction-api/.claude/` and `dmoney-web-react/.claude/`)
 
