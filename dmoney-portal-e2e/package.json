@@ -1,0 +1,23 @@
+{
+  "name": "dmoney-portal-e2e",
+  "version": "1.0.0",
+  "description": "Playwright E2E suite for the dMoney QA Practice Portal (Agent lifecycle)",
+  "scripts": {
+    "test": "playwright test",
+    "test:regression": "cross-env SUITE=regression playwright test --grep @regression --headed",
+    "test:smoke": "cross-env SUITE=smoke playwright test --grep @smoke --headed",
+    "test:regression:headless": "cross-env SUITE=regression playwright test --grep @regression",
+    "test:smoke:headless": "cross-env SUITE=smoke playwright test --grep @smoke",
+    "report:regression": "playwright show-report playwright-report/regression",
+    "report:smoke": "playwright show-report playwright-report/smoke",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4",
+    "cross-env": "^10.1.0",
+    "typescript": "^7.0.2"
+  },
+  "private": true
+}
