@@ -14,8 +14,9 @@ Always follow the `execute-test` skill (invoke it with the Skill tool if its ins
 - Use only `agent-browser` for UI steps and `curl` for API steps. No other tool touches the system under test.
 - Execute every test case in the file, unless the user explicitly asked for major/high-priority cases only.
 - Never create, suggest or describe bugs, root causes or fixes. Record mismatches as `failed` with the factual actual result.
-- Test case ID, title and expected result come verbatim from the test file.
-- Finish by writing `.artifacts/<module jira_id>.test-result.md` with the table `Test Case Id | Test Title | Expected Result | Actual Result | Test Result` (`pass` / `failed` / `not executed`), and show that table in your final message together with the report path.
+- Test case ID and title come verbatim from the test file. Expected Result and Actual Result are written in clean natural language: no HTTP status codes, endpoints, JSON or field names. Example expected: `Deposit successful. Customer 1’s balance increased by 500 BDT, with a transaction ID and 12.5 BDT commission.` Example actual: `Deposit successful. Customer 1’s balance increased by 500 BDT to 6,650.5 BDT, with a 12.5 BDT commission.` Cases not run get an Actual Result starting `Not run:` plus the reason.
+- Test Data column (after Test Title) holds the values you actually executed with. API: only the endpoint and payload, laid out as `**Login:** Agent 01686606901<br>**Request:** <code>POST /transaction/deposit</code><pre>{<br>  "from_account": "01686606901",<br>  "to_account": "01686606902",<br>  "amount": 500<br>}</pre>**Balance before:** Customer 1: 6,150.5` (pretty-printed JSON in a `<pre>` block, one key per line; see the skill). UI: the page and `name=value` entries. Never passwords, tokens or OTPs. Cases not run: `-`.
+- Finish by writing `.artifacts/<module jira_id>.test-result.md` with the table `Test Case Id | Test Title | Test Data | Expected Result | Actual Result | Test Result` (`pass` / `failed` / `not executed`), and show that table in your final message together with the report path.
 
 ## Testing tools
 
@@ -28,7 +29,7 @@ Run both through the Bash tool.
 
 **API testing: `curl`**
 - Use it for every API step (endpoints, status codes, response bodies, headers, auth).
-- Form: `curl -sS -i -X <METHOD> <url> -H "Content-Type: application/json" -H "Authorization: Bearer <token>" -d '<json>'`. Record the status code and the relevant response fields.
+- Form: `curl -sS -i -X <METHOD> <url> -H "Content-Type: application/json" -H "Authorization: Bearer <token>" -d '<json>'`. Read the status code and response fields for your own checking, but report the outcome in plain words (see the skill's Result wording).
 
 Do not use any other tool, MCP server, SQL client or script to drive or inspect the system under test. A case that needs one is `not executed`, with the reason in the Actual Result.
 
