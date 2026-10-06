@@ -45,9 +45,10 @@ function startOfMonth() {
  *
  * @param {string} customerPhone  - The customer's phone number (= account field)
  * @param {Date}   periodStart    - Start of the window to query
+ * @param {object} [transaction]  - Optional Sequelize transaction to read within
  * @returns {{ usedAmount: number, usedCount: number }}
  */
-async function getUsage(customerPhone, periodStart) {
+async function getUsage(customerPhone, periodStart, transaction) {
     const [rows] = await sequelize.query(
         `SELECT
              COALESCE(SUM(debit), 0)               AS usedAmount,
@@ -63,6 +64,7 @@ async function getUsage(customerPhone, periodStart) {
                 types: OUTGOING_TYPES,
                 since: periodStart
             },
+            transaction,
             type: sequelize.QueryTypes.SELECT
         }
     );
@@ -84,6 +86,10 @@ async function getUsage(customerPhone, periodStart) {
  *
  * @param {string} customerPhone  - Sender's phone number
  * @param {number} totalDebit     - Total amount that will be debited (amount + fee)
+ * @param {object} [options]
+ * @param {object} [options.transaction] - Sequelize transaction to run the reads in.
+ *   Pass it from inside a locked (SELECT ... FOR UPDATE) transaction so concurrent
+ *   requests cannot all pass the check against the same stale usage.
  *
  * @returns {Promise<{
  *   allowed: boolean,
@@ -99,10 +105,11 @@ async function getUsage(customerPhone, periodStart) {
  *   }
  * }>}
  */
-async function checkCustomerLimits(customerPhone, totalDebit) {
+async function checkCustomerLimits(customerPhone, totalDebit, { transaction } = {}) {
     // Load all active limits for Customer role
     const limits = await TransactionLimit.findAll({
-        where: { role: 'Customer', is_active: 1 }
+        where: { role: 'Customer', is_active: 1 },
+        transaction
     });
 
     if (!limits || limits.length === 0) {
@@ -116,7 +123,7 @@ async function checkCustomerLimits(customerPhone, totalDebit) {
         const maxCount   = parseInt(limitRow.getDataValue('max_count'), 10);
 
         const periodStart = period === 'daily' ? startOfDay() : startOfMonth();
-        const { usedAmount, usedCount } = await getUsage(customerPhone, periodStart);
+        const { usedAmount, usedCount } = await getUsage(customerPhone, periodStart, transaction);
 
         const remainingAmount = maxAmount - usedAmount;
         const remainingCount  = maxCount  - usedCount;

@@ -64,6 +64,10 @@ export default function SendMoney() {
     } else if (Number(formData.amount) <= 0) {
       errors.amount = 'Amount must be greater than 0.';
       valid = false;
+    } else if (!/^\d+(\.\d{1,2})?$/.test(formData.amount)) {
+      // The form is noValidate, so the input's step=0.01 is not enforced by the browser
+      errors.amount = 'Amount can have at most 2 decimal places.';
+      valid = false;
     }
 
     setFieldErrors(errors);
@@ -82,7 +86,7 @@ export default function SendMoney() {
       const phoneNumber = localStorage.getItem('phoneNumber');
       if (!phoneNumber) { setError('Phone number not found. Please log in again.'); return; }
       const res = await API.post('/transaction/sendmoney', {
-        from_account: phoneNumber, to_account: formData.receiver, amount: Number(formData.amount),
+        from_account: phoneNumber, to_account: formData.receiver.trim(), amount: Number(formData.amount),
       });
       // 208 is a 2xx code — Axios won't throw, so we must check it explicitly.
       // The API uses 208 for soft failures (e.g. insufficient balance, limit exceeded).
@@ -178,7 +182,7 @@ export default function SendMoney() {
                 )}
                 {sentAmount !== null && (
                   <Box>
-                    <Typography sx={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Amount</Typography>
+                    <Typography sx={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Amount Sent</Typography>
                     <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: 18, mt: 0.5 }}>৳ {sentAmount.toFixed(2)}</Typography>
                   </Box>
                 )}
@@ -186,6 +190,13 @@ export default function SendMoney() {
                   <Box>
                     <Typography sx={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Service Fee</Typography>
                     <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: 18, mt: 0.5 }}>৳ {serviceFee.toFixed(2)}</Typography>
+                  </Box>
+                )}
+                {sentAmount !== null && (
+                  <Box>
+                    {/* What was actually debited from the sender: amount + service fee */}
+                    <Typography sx={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Amount</Typography>
+                    <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: 18, mt: 0.5 }}>৳ {(sentAmount + (serviceFee ?? 0)).toFixed(2)}</Typography>
                   </Box>
                 )}
                 {currentBalance !== null && (

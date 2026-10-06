@@ -7,14 +7,48 @@ const { generateTrnxId } = require('../../services/generateTrnxId');
 const { sequelize } = require('../../sequelizeModel/db');
 const { Transaction } = require('sequelize');
 
-exports.handleSendMoney = async (req, res, next) => {
-    const { from_account, to_account, amount } = req.body;
-    const amt = Number(amount);
-    const trnxId = generateTrnxId();
+// Plain decimal with at most 2 places (BDT). Rejects hex ("0x10"), exponent ("1e1"),
+// arrays ([20]) and sub-paisa amounts (10.555) that Number() would otherwise accept.
+const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
 
+exports.handleSendMoney = async (req, res, next) => {
+    try {
+        return await sendMoney(req, res);
+    } catch (err) {
+        // Never let a rejected promise escape: Express 4 does not catch async errors,
+        // and an unhandled rejection would terminate the whole API process.
+        console.error('SendMoney error:', err);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+async function sendMoney(req, res) {
+    const { amount } = req.body;
+
+    // ── Input validation ─────────────────────────────────────────────────────
+    // Both accounts must be non-empty strings. Missing values would reach
+    // Users.findOne as `undefined`, and arrays would turn into an IN (...) lookup.
+    if (typeof req.body.from_account !== 'string' || !req.body.from_account.trim()) {
+        return res.status(400).json({ message: 'from_account is required and must be a string' });
+    }
+    if (typeof req.body.to_account !== 'string' || !req.body.to_account.trim()) {
+        return res.status(400).json({ message: 'to_account is required and must be a string' });
+    }
+    // Trim so "01686606903 " cannot bypass the same-account check below
+    // (the DB collation pads spaces, so lookups would still match the sender).
+    const from_account = req.body.from_account.trim();
+    const to_account   = req.body.to_account.trim();
+
+    if ((typeof amount !== 'number' && typeof amount !== 'string') ||
+        !AMOUNT_PATTERN.test(String(amount).trim())) {
+        return res.status(400).json({ message: 'Amount must be a valid number greater than 0 with at most 2 decimal places' });
+    }
+    const amt = Number(amount);
     if (!Number.isFinite(amt) || amt <= 0) {
         return res.status(400).json({ message: 'Amount must be a valid number greater than 0' });
     }
+
+    const trnxId = generateTrnxId();
 
     // Load commission rules from DB
     const config    = await Commission.getConfig('SendMoney');
@@ -55,17 +89,6 @@ exports.handleSendMoney = async (req, res, next) => {
 
         if (fromRole === "Customer" && toRole === "Customer") {
 
-            // ── Daily / Monthly limit check ──────────────────────────────────
-            // Pass the full debit (amount + fee) so the check uses the same
-            // basis as the historical SUM(debit) query in limitChecker.js.
-            const limitCheck = await checkCustomerLimits(from_account, amt + p2pFee);
-            if (!limitCheck.allowed) {
-                return res.status(400).json({
-                    message: limitCheck.message,
-                    details: limitCheck.details
-                });
-            }
-
             // ── Minimum amount check (no DB needed — do it before the transaction) ──
             if (amt < minAmount) {
                 return res.status(400).json({ message: `Minimum amount is ${minAmount} tk` });
@@ -90,6 +113,19 @@ exports.handleSendMoney = async (req, res, next) => {
                             // Throw to trigger automatic rollback
                             const err = new Error('INSUFFICIENT_BALANCE');
                             err.balance = currentBalance;
+                            throw err;
+                        }
+
+                        // ── Daily / Monthly limit check ──────────────────────
+                        // Runs after the FOR UPDATE lock so concurrent sends from the
+                        // same account are serialized and each one sees the others'
+                        // committed debits (READ_COMMITTED re-snapshots per statement).
+                        // Pass the full debit (amount + fee) so the check uses the same
+                        // basis as the historical SUM(debit) query in limitChecker.js.
+                        const limitCheck = await checkCustomerLimits(from_account, amt + p2pFee, { transaction: t });
+                        if (!limitCheck.allowed) {
+                            const err = new Error('LIMIT_EXCEEDED');
+                            err.limitCheck = limitCheck;
                             throw err;
                         }
 
@@ -145,8 +181,14 @@ exports.handleSendMoney = async (req, res, next) => {
                         currentBalance: err.balance
                     });
                 }
+                if (err.message === 'LIMIT_EXCEEDED') {
+                    return res.status(400).json({
+                        message: err.limitCheck.message,
+                        details: err.limitCheck.details
+                    });
+                }
                 console.error('SendMoney transaction error:', err);
-                return res.status(500).json({ message: "Internal server error", error: err.message });
+                return res.status(500).json({ message: "Internal server error" });
             }
 
         } else {
@@ -159,6 +201,6 @@ exports.handleSendMoney = async (req, res, next) => {
             return res.status(404).json({ message: "To Account does not exist" });
         }
     }
-};
+}
 
 
