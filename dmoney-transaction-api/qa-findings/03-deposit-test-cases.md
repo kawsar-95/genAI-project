@@ -285,32 +285,53 @@
 
 ## 3. Prioritized Test Titles
 
+**Type tags** (one primary type per case):
+
+| Tag | Meaning in this set |
+|---|---|
+| **Sanity** | Core happy path. If it fails, the deposit feature is down and further testing is pointless. |
+| **Feature** | A deposit business rule: commission, min/max amount, wallet cap, balance, account status, allowed account pairs. |
+| **Regression** | A sibling cash-in flow that shares the deposit ledger (Admin deposit, Stripe cash-in), re-checked so it still works. |
+| **Security** | Authorization: role, account ownership, cross-user access, replay. |
+| **System Architecture** | Ledger integrity under concurrency, relying on the transaction lock (`FOR UPDATE`). |
+| **Non-functional** | Performance, load, reliability. No case in this set has this tag yet; see the note below. |
+
 ### High
-- TC-001: Verify Agent deposit to Customer with valid amount
-- TC-002: Verify Agent commission on a Customer deposit
-- TC-011: Verify SYSTEM deposit to a regular Agent
-- TC-013: Verify Admin deposit to SYSTEM account
-- TC-017: Verify Stripe cash-in confirmation with valid payment
-- TC-005: Verify deposit to Customer already at maximum wallet cap
-- TC-007: Verify deposit by Agent with zero balance
-- TC-022: Verify concurrent deposits exceeding Agent balance
-- TC-008: Verify deposit with another Agent's phone as from_account
-- TC-023: Verify deposit from SYSTEM account initiated by Customer
-- TC-009: Verify deposit initiated by Customer role
-- TC-012: Verify SYSTEM deposit to Customer account
-- TC-014: Verify adminDeposit access with Customer role
-- TC-015: Verify Stripe create-intent with Agent role
-- TC-018: Verify Stripe confirm with another Customer's PaymentIntent
+
+| TC | Test title | Expected result | Type |
+|---|---|---|---|
+| TC-001 | Verify Agent deposit to Customer with valid amount | 201 "Deposit successful", and the Customer's balance goes up by exactly 500 | Sanity |
+| TC-002 | Verify Agent commission on a Customer deposit | `commission` is 25, and the Agent's balance falls by 975 (1000 − 25), not 1000 | Feature |
+| TC-011 | Verify SYSTEM deposit to a regular Agent | 201 "SYSTEM deposit to Agent successful", and the Agent's balance goes up by exactly 5000 with no commission | Feature |
+| TC-013 | Verify Admin deposit to SYSTEM account | 201 "Deposit to SYSTEM account successful", and SYSTEM's balance goes up by 100000 | Regression |
+| TC-017 | Verify Stripe cash-in confirmation with valid payment | "Cash in successful". The Customer goes up by 500 and SYSTEM goes down by 500, in two ledger rows that share the PaymentIntent id | Regression |
+| TC-005 | Verify deposit to Customer already at maximum wallet cap | 208 "Limit exceeded. You cannot deposit any more to this account.", and the balance stays 10000 | Feature |
+| TC-007 | Verify deposit by Agent with zero balance | 208 "Insufficient balance" with `currentBalance` 0, and the Customer's balance is unchanged | Feature |
+| TC-022 | Verify concurrent deposits exceeding Agent balance | Exactly one of the two parallel deposits succeeds (the other gets 208), and the Agent ends at 415 and never goes negative | System Architecture |
+| TC-008 | Verify deposit with another Agent's phone as from_account | 403 "Unauthorized: you can only initiate transactions from your own account", and no balance changes | Security |
+| TC-023 | Verify deposit from SYSTEM account initiated by Customer | 403 "Unauthorized: you can only initiate transactions from your own account", and the Customer's balance is unchanged | Security |
+| TC-009 | Verify deposit initiated by Customer role | 400 "Invalid from account. Only an Agent or the SYSTEM account can initiate a deposit.", and no balance changes | Security |
+| TC-012 | Verify SYSTEM deposit to Customer account | 400 "SYSTEM account can only deposit to a regular Agent account…", and the Customer's balance is unchanged | Feature |
+| TC-014 | Verify adminDeposit access with Customer role | 403 "Only Admin can use this deposit endpoint", and SYSTEM's balance is unchanged | Security |
+| TC-015 | Verify Stripe create-intent with Agent role | 403 "Only customers can use bank cash-in", and no PaymentIntent is returned | Security |
+| TC-018 | Verify Stripe confirm with another Customer's PaymentIntent | 403 "Payment intent does not belong to this account", and Customer 2's balance is unchanged | Security |
 
 ### Mid
-- TC-003: Verify deposit with amount below minimum limit
-- TC-004: Verify deposit with amount above maximum limit
-- TC-006: Verify deposit exceeding remaining wallet cap
-- TC-020: Verify deposit initiated by suspended Agent
-- TC-021: Verify deposit to suspended Customer
-- TC-010: Verify deposit with identical from and to accounts
-- TC-016: Verify Stripe create-intent with amount below minimum
-- TC-019: Verify Stripe confirm replay with a processed PaymentIntent
+
+| TC | Test title | Expected result | Type |
+|---|---|---|---|
+| TC-003 | Verify deposit with amount below minimum limit | 400 "Minimum deposit amount is 10 tk and maximum deposit amount is 10000 tk", and no balance changes | Feature |
+| TC-004 | Verify deposit with amount above maximum limit | 400 with the same min/max message, and no balance changes | Feature |
+| TC-006 | Verify deposit exceeding remaining wallet cap | 208 "Limit exceeded. You can deposit a maximum of 100.00 tk to this customer.", and the balance stays 9900 | Feature |
+| TC-020 | Verify deposit initiated by suspended Agent | 403 "From account is not active. Please contact admin.", and the Customer's balance is unchanged | Feature |
+| TC-021 | Verify deposit to suspended Customer | 403 "To account is not active. Please contact admin.", and neither balance changes | Feature |
+| TC-010 | Verify deposit with identical from and to accounts | 400 "From account and to account cannot be the same", and the Agent's balance is unchanged | Feature |
+| TC-016 | Verify Stripe create-intent with amount below minimum | 400 "Minimum cash-in amount is 10 tk", and no PaymentIntent is returned | Regression |
+| TC-019 | Verify Stripe confirm replay with a processed PaymentIntent | 208 "This payment has already been processed", and the balance is unchanged by the replay | Security |
+
+**Type summary:** Sanity 1 · Feature 11 · Regression 3 · Security 7 · System Architecture 1 · Non-functional 0.
+
+> **Note: no Non-functional case.** This set has no performance or load case. Response time under parallel deposits, and how the lock behaves under load, are untested. TC-022 checks correctness under concurrency, not speed. If you need one, add a separate case with an agreed response-time target. The requirements don't define one.
 
 ## Open Questions
 
