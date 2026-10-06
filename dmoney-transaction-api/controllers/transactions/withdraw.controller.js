@@ -59,19 +59,6 @@ exports.handleWithdraw = async (req, res, next) => {
                 return res.status(400).json({ message: "To Account is not agent account" });
             }
 
-            // ── Daily / Monthly limit check (Customers only) ──────────────────
-            // Pass the full debit (amount + fee) so the check uses the same
-            // basis as the historical SUM(debit) query in limitChecker.js.
-            if (fromRole === "Customer") {
-                const limitCheck = await checkCustomerLimits(from_account, amt + withdrawFee);
-                if (!limitCheck.allowed) {
-                    return res.status(400).json({
-                        message: limitCheck.message,
-                        details: limitCheck.details
-                    });
-                }
-            }
-
             // ── Minimum amount check (no DB needed — do it before the transaction) ──
             if (amt < minAmount) {
                 return res.status(400).json({
@@ -94,6 +81,22 @@ exports.handleWithdraw = async (req, res, next) => {
                             { replacements: [from_account], transaction: t, type: sequelize.QueryTypes.SELECT }
                         );
                         const currentBalance = parseFloat(balanceRows[0].Balance) || 0;
+
+                        // ── Daily / Monthly limit check (Customers only) ──────
+                        // Runs after the FOR UPDATE lock so concurrent outgoing
+                        // transactions from the same account (SendMoney, Payment,
+                        // Withdraw all take this lock first) are serialized and each one
+                        // sees the others' committed debits. Checked before the balance,
+                        // as BRD §8.3 requires. Pass the full debit (amount + fee) so the
+                        // check uses the same basis as the SUM(debit) query in limitChecker.js.
+                        if (fromRole === "Customer") {
+                            const limitCheck = await checkCustomerLimits(from_account, amt + withdrawFee, { transaction: t });
+                            if (!limitCheck.allowed) {
+                                const err = new Error('LIMIT_EXCEEDED');
+                                err.limitCheck = limitCheck;
+                                throw err;
+                            }
+                        }
 
                         if (currentBalance <= 0 || amt + withdrawFee > currentBalance) {
                             const err = new Error('INSUFFICIENT_BALANCE');
@@ -151,6 +154,12 @@ exports.handleWithdraw = async (req, res, next) => {
                     return res.status(208).json({
                         message:        "Insufficient balance",
                         currentBalance: err.balance
+                    });
+                }
+                if (err.message === 'LIMIT_EXCEEDED') {
+                    return res.status(400).json({
+                        message: err.limitCheck.message,
+                        details: err.limitCheck.details
                     });
                 }
                 console.error('Withdraw transaction error:', err);
