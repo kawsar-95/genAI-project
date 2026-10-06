@@ -1,6 +1,6 @@
 ---
 name: test-design
-description: Design traceable test cases from a ticket, requirement, PR, commit, API endpoint, or UI page. Output has exactly three sections — Requirement Highlights, Test Cases (ID, "Verify…" title, steps, expected result), and Prioritized Test Titles grouped by High / Mid / Low. Use when the user asks to "write test cases", "design tests", "what should I test", "test scenarios for <feature>", or "sanity/regression tests for this PR".
+description: Design traceable test cases from a ticket, requirement, PR, commit, API endpoint, or UI page. Output has exactly three sections — Requirement Highlights, Test Cases (ID, "Verify…" title, steps, expected result), and Prioritized Test Titles grouped by High / Mid / Low as tables with a one-line expected result and a type tag (Sanity / Feature / Regression / Security / System Architecture / Non-functional). Use when the user asks to "write test cases", "design tests", "what should I test", "test scenarios for <feature>", or "sanity/regression tests for this PR".
 ---
 
 # Test Design
@@ -38,7 +38,8 @@ Turn a requirement or code change into the **smallest set of test cases that pro
 4. Add related regression for directly affected callers and shared flows.
 5. Remove duplicates — merge cases that hit the same input class and outcome.
 6. Assign priority (High / Mid / Low) to every case.
-7. Run the self-check (section 6), then produce the output (section 5).
+7. Assign exactly one primary **type tag** to every case (section 4b).
+8. Run the self-check (section 6), then produce the output (section 5).
 
 ## 3. Techniques & coverage checklist
 
@@ -67,6 +68,24 @@ Turn a requirement or code change into the **smallest set of test cases that pro
 | **High** | Core happy path, money, auth, data integrity, release blocker |
 | **Mid** | Main negative paths, boundaries, validation, related regression |
 | **Low** | Cosmetic, rare combinations, nice-to-have |
+
+## 4b. Type tags
+
+Give each case **one** primary type, chosen by the main thing it proves. Priority and type are independent: a Security case can be Mid, and a Feature case can be High.
+
+| Tag | Assign when the case mainly proves… | Example |
+|---|---|---|
+| **Sanity** | The core happy path works at all. If it fails, stop testing. Usually 1–2 cases per feature. | Agent deposit to Customer with a valid amount |
+| **Feature** | A business rule of the feature under test: calculation, limit, boundary, cap, status, allowed combinations, validation. | Deposit below the minimum; commission amount |
+| **Regression** | A related or sibling flow still works: shared callers, shared ledger or data, or flows the change routes around. | Stripe cash-in and Admin deposit after a deposit change |
+| **Security** | Authentication or authorization: wrong role, ownership or IDOR, missing or expired token, replay, data exposure, injection. | Deposit using another Agent's phone |
+| **System Architecture** | Integrity that depends on the system's design: concurrency or locking, transactions or rollback, idempotency of the data pipeline, cross-service consistency. | Two parallel deposits that exceed the Agent's balance |
+| **Non-functional** | Performance, load, reliability, recovery, accessibility, compatibility, **with a target from a source**. | 50 parallel transfers each complete within the SLA |
+
+Rules:
+- If a case could fit two tags, pick the one whose failure is the most serious. An ownership check is **Security** even though it's also a business rule.
+- Correctness under concurrency is **System Architecture**. Speed or capacity under load is **Non-functional**. Never tag a case Non-functional without a confirmed target.
+- If no case fits a tag, say so in the type summary rather than forcing one.
 
 ## 5. Output format — exactly three sections, in this order
 
@@ -118,23 +137,44 @@ Number cases `TC-001` upward in one continuous sequence.
 
 ### 3. Prioritized Test Titles
 
-Titles only — no steps, no results. Grouped by priority, every case appears exactly once.
+One table per priority group. Each row has the case ID, the title, **the one most important expected result on one line**, and the **type tag** (section 4b). There are no steps. Every case appears exactly once.
+
+**Expected result column rules:**
+- One line, taken from the case's own **Expected Result** in section 2. Never add an expectation that isn't in the case.
+- Give the decisive observable first: the status code and exact message text, or the UI state. Then, after a comma, the one side effect that matters most, such as a balance change, a record created or not, or no change. Example: `400 "Minimum deposit amount is 10 tk…", and no balance changes`.
+- If the case's expected result is `TBD — see Q-n`, write the same here.
 
 ```markdown
 ## 3. Prioritized Test Titles
 
+**Type tags:** Sanity · Feature · Regression · Security · System Architecture · Non-functional (definitions in a short legend table when the set uses more than two tags).
+
 ### High
-- TC-001: Verify transfer with valid amount and sufficient balance
-- TC-004: Verify transfer with amount exceeding balance
+
+| TC | Test title | Expected result | Type |
+|---|---|---|---|
+| TC-001 | Verify transfer with valid amount and sufficient balance | 201 "Transfer successful", and the sender is debited the amount plus the fee | Sanity |
+| TC-004 | Verify transfer with amount exceeding balance | 208 "Insufficient balance", and no balance changes | Feature |
+| TC-007 | Verify transfer from another user's account | 403 "Unauthorized…", and no balance changes | Security |
 
 ### Mid
-- TC-002: Verify transfer with amount at maximum limit
+
+| TC | Test title | Expected result | Type |
+|---|---|---|---|
+| TC-002 | Verify transfer with amount at maximum limit | 201, and exactly the maximum amount is transferred | Feature |
 
 ### Low
-- TC-009: Verify transfer form layout on mobile viewport
+
+| TC | Test title | Expected result | Type |
+|---|---|---|---|
+| TC-009 | Verify transfer form layout on mobile viewport | All fields and the submit button are visible without horizontal scroll at 375 px | Feature |
+
+**Type summary:** Sanity 1 · Feature 3 · Regression 0 · Security 1 · System Architecture 0 · Non-functional 0.
 ```
 
-Omit a priority group only if it has no cases. Within each group, order by run order (most critical first).
+- Omit a priority group only if it has no cases. Within each group, order by run order (most critical first).
+- End the section with the **Type summary** line. If a tag has 0 cases where you'd expect coverage, for example no Non-functional case for a performance-sensitive change, add a one-line note saying what's missing and why. Usually the reason is that no target is defined.
+- The title column still follows the title rules: it never reveals the outcome. The outcome goes only in the Expected result column.
 
 **After the three sections**, add `Open Questions` (`Q-n: <question> — blocks TC-00x`) only if any exist.
 
@@ -148,6 +188,8 @@ Omit a priority group only if it has no cases. Within each group, order by run o
 - [ ] Boundaries use confirmed limits from the source, not guesses.
 - [ ] No two cases test the same input class with the same outcome.
 - [ ] Every TC appears exactly once in section 3 under High, Mid, or Low.
+- [ ] Every section 3 row has a one-line Expected result taken from that case's Expected Result (nothing new added), and exactly one type tag from section 4b.
+- [ ] The Type summary counts add up to the number of cases. Any 0-count tag that matters is explained in one line.
 - [ ] Unknowns are in Open Questions, not silently assumed.
 
 ## Rules

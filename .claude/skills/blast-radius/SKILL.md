@@ -1,6 +1,6 @@
 ---
 name: blast-radius
-description: Detect every code change against main (committed, staged, unstaged, untracked) and trace its full dependency impact — direct and transitive importers, affected API endpoints, frontend pages calling those endpoints, DB/model, auth, config and env — ending in a risk-ranked report. Use when the user asks for "blast radius", "what does my change impact", "impact analysis", "what will this break", "what should I retest", or before opening a PR.
+description: Detect every code change against main (committed, staged, unstaged, untracked) and trace its full dependency impact — direct and transitive importers, fan-in / fan-out of every changed module and symbol (with main-vs-branch deltas), affected API endpoints, frontend pages calling those endpoints, DB/model, auth, config and env — ending in a risk-ranked report. Use when the user asks for "blast radius", "what does my change impact", "impact analysis", "what will this break", "what should I retest", or before opening a PR.
 ---
 
 # Blast Radius
@@ -96,6 +96,40 @@ Filter each hit:
 
 Record each chain: `changed#symbol → importer → … → entry point`.
 
+## 4b. Measure fan-in / fan-out (never skip)
+
+**Fan-in** counts what depends on a thing (importers or callers). It shows how far a change can spread. **Fan-out** counts what a thing depends on (imports, calls, DB tables). It shows how many things can break it. Measure both at `HEAD` and at `BASE`, and report the **delta**. Use `git show <sha>:<file>`, never the working tree, for the `BASE` side.
+
+**Module level**, for each changed file:
+- **Fan-in (Ca):** the path-resolved importers from step 4 (count only direct importers). Next.js pages have no importers; count their route plus any `ROLE_MENUS` link instead.
+- **Fan-out (Ce):** the distinct modules the file imports:
+  ```bash
+  git show <sha>:<file> | grep -nE "require\(|^import "   # drop matches inside comments
+  ```
+- **Instability** = Ce / (Ca + Ce).
+  - Near 1: a leaf, cheap to change.
+  - Near 0: heavily depended on, so a change spreads.
+- Note imports that are never used (`grep -c "\b<name>\b"` = 1).
+
+**Symbol level**, for each changed or new symbol from step 3:
+- **Fan-in:** call sites (`rg -n "<symbol>\(" …`), path-resolved like step 4, then carried through to endpoints and pages, e.g. `3 callers → 3 endpoints → 5 pages`. Say how many callers use any **new** parameter or field.
+- **Fan-out:** the calls the symbol makes, compared between `BASE` and `HEAD`:
+  ```bash
+  git show <sha>:<file> | grep -noE "(<callee1>|<callee2>|…)\("   # e.g. Users\.findOne|sequelize\.(transaction|query)|Transactions\.create
+  ```
+  Report the count of calls and distinct targets, any call that was **added, removed or moved** (for example, into or out of a `sequelize.transaction` block or an early-return path), and what an invalid request now reaches.
+- **Private helpers** (not exported) still get a row, because their fan-in shows whether a change stays contained.
+
+**DB fan-out** (when a money-moving controller, model or service changed):
+- Count the statements per request by table, **outside vs inside** the locked `sequelize.transaction`, at `BASE` and at `HEAD`.
+- Work moved into a `FOR UPDATE` section lengthens the lock. `Transactions` has no `account` index, so the lock covers the whole table.
+
+**Coupling context:**
+- List the fan-in of each **unchanged** dependency the changed files use (e.g. `db` 20 files, `@/lib/api` 16).
+- State plainly whether the change touches them. A high fan-in dependency that wasn't changed does **not** widen the blast radius.
+
+Name the **changed symbol with the highest fan-in**. It sets the blast radius, and it goes on the report's summary line.
+
 ## 5. Map to entry points
 
 **Backend endpoints.** For every controller handler reached, find the binding:
@@ -147,13 +181,17 @@ Run every check below that matches the change. Report only the ones that apply, 
 
 Give each rating a one-line rationale. Overall risk = highest row.
 
+**Use fan-in from step 4b when rating:**
+- "≥3 dependents" means a symbol-level fan-in of 3 or more.
+- A dependent that is reached only through a changed symbol whose **call and behaviour are unchanged for that caller**, such as a new optional parameter it doesn't pass, gets a regression-only rating: one level lower, and the Why column says so.
+
 ## 9. Output template
 
 Fixed order. **Omit empty sections.** No preamble, no closing summary.
 
 ```markdown
 ## Blast Radius — <branch> vs main (<BASE short sha>)
-Changes: <n> files (<c> committed · <s> staged · <u> unstaged · <t> untracked) · Overall risk: <level>
+Changes: <n> files (<c> committed · <s> staged · <u> unstaged · <t> untracked) · Overall risk: <level> · Highest fan-in: `<symbol>` (<callers> → <endpoints> → <pages>)
 Excluded: <files, one line>
 
 ### Changed files
@@ -162,6 +200,24 @@ Excluded: <files, one line>
 
 ### Impact chains
 - `<changed#symbol>` → `<importer>` → … → `<METHOD /path | /route>`
+
+### Fan-in / fan-out
+#### Module level
+| Changed module | Fan-in (Ca) | Fan-out (Ce) | Instability | Change vs main |
+|---|---|---|---|---|
+
+#### Symbol level
+| Symbol | Fan-in: callers → endpoints → pages | Fan-out: calls / resources | Change vs main |
+|---|---|---|---|
+
+#### DB fan-out of <endpoint>   <!-- only for money-moving / model / service changes -->
+| Tables touched | main (<BASE sha>) | branch (<HEAD sha>) |
+|---|---|---|
+
+#### Unchanged dependencies (coupling context)
+<module> <fan-in> · … · changed by this diff: yes/no
+
+**Takeaway:** <the symbol with the highest fan-in and why it sets the radius, in 1–2 lines>
 
 ### Affected backend endpoints
 | Endpoint | Auth | Reached via | Risk | Why |
@@ -176,6 +232,10 @@ Excluded: <files, one line>
 
 ### Contract / side-channel risks
 - <applicable step-7 check, with file:line>
+
+### Requirement traceability   <!-- only when the user names issues / requirement or AC docs -->
+| Issue | Requirement ACs | Changed symbol(s) | Status in this change set |
+|---|---|---|---|
 
 ### Suggested verification
 | # | What to check | Where | Why |
@@ -196,6 +256,8 @@ Excluded: <files, one line>
 
 - [ ] Base is the merge-base with `main`. Committed, staged, unstaged **and** untracked files are included
 - [ ] Every impact row traces back to a changed file through a recorded chain
+- [ ] Fan-in and fan-out were measured at module **and** symbol level, at `BASE` and `HEAD` (via `git show`), with the delta stated
+- [ ] The changed symbol with the highest fan-in is named on the summary line, and the risk ratings use the fan-in counts
 - [ ] Import hits were path-resolved; comment matches and same-basename false positives were removed
 - [ ] Symbol-level narrowing was applied unless the change is whole-file (and that is stated)
 - [ ] Every affected backend endpoint was cross-linked to its frontend callers (or "no frontend caller")
@@ -209,7 +271,7 @@ Input: unstaged edit changing the daily-cap logic inside `checkCustomerLimits` i
 
 ```markdown
 ## Blast Radius — main vs main (3bcaa33)
-Changes: 1 file (0 committed · 0 staged · 1 unstaged · 0 untracked) · Overall risk: Critical
+Changes: 1 file (0 committed · 0 staged · 1 unstaged · 0 untracked) · Overall risk: Critical · Highest fan-in: `checkCustomerLimits` (3 callers → 3 endpoints → 5 pages)
 
 ### Changed files
 | File | Status | Source | Category | Changed symbols |
@@ -220,6 +282,23 @@ Changes: 1 file (0 committed · 0 staged · 1 unstaged · 0 untracked) · Overal
 - `limitChecker.js#checkCustomerLimits` → `controllers/transactions/sendMoney.controller.js:61` → `POST /transaction/sendmoney`
 - `limitChecker.js#checkCustomerLimits` → `controllers/transactions/payment.controller.js:72` → `POST /transaction/payment`
 - `limitChecker.js#checkCustomerLimits` → `controllers/transactions/withdraw.controller.js:66` → `POST /transaction/withdraw`
+
+### Fan-in / fan-out
+#### Module level
+| Changed module | Fan-in (Ca) | Fan-out (Ce) | Instability | Change vs main |
+|---|---|---|---|---|
+| api/services/limitChecker.js | 3 (sendMoney, payment, withdraw controllers) | 3 (`sequelize`, `db`, `TransactionLimit`) | 0.50 | Imports unchanged; `Op`/`fn`/`col`/`literal` imported but unused (pre-existing) |
+
+#### Symbol level
+| Symbol | Fan-in: callers → endpoints → pages | Fan-out: calls / resources | Change vs main |
+|---|---|---|---|
+| `checkCustomerLimits` | 3 → 3 → 5 (Customer ×3, Agent ×1, Merchant ×1) | `TransactionLimit.findAll` ×1 + `getUsage` ×N (N = active limit rows) | Body only; same calls, same signature |
+| `getUsage` (private) | 1 (`checkCustomerLimits`) | `sequelize.query` ×1 (aggregate on `Transactions`) | Unchanged |
+
+#### Unchanged dependencies (coupling context)
+`db` 20 · `TransactionLimit` 1 · changed by this diff: no
+
+**Takeaway:** `checkCustomerLimits` has a fan-in of 3, so a cap-logic change reaches every Customer outgoing flow. All three endpoints need boundary tests.
 
 ### Affected backend endpoints
 | Endpoint | Auth | Reached via | Risk | Why |
