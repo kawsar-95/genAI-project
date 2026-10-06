@@ -72,9 +72,17 @@ async function sendMoney(req, res) {
             });
         }
 
-        if (from_account === to_account) {
+        // Compare the resolved users, not the request strings: the DB collation
+        // (utf8mb4_unicode_ci) matches look-alike spellings, such as a trailing
+        // zero-width space or full-width digits, to the same user.
+        if (from_account_exists.getDataValue('id') === to_account_exists.getDataValue('id')) {
             return res.status(400).json({ message: "From account and to account cannot be the same" });
         }
+
+        // Use the stored phone numbers from here on, so the lock, the limit check
+        // and the ledger rows never carry a look-alike spelling of the account.
+        const fromPhone = from_account_exists.getDataValue('phone_number');
+        const toPhone   = to_account_exists.getDataValue('phone_number');
 
         // Status checks — both accounts must be active
         if (from_account_exists.getDataValue('status') !== 'active') {
@@ -105,9 +113,24 @@ async function sendMoney(req, res) {
                         // Locked balance read — blocks concurrent requests on this account
                         const balanceRows = await sequelize.query(
                             'SELECT COALESCE(SUM(`credit`) - SUM(`debit`), 0) AS Balance FROM Transactions WHERE `account` = ? FOR UPDATE',
-                            { replacements: [from_account], transaction: t, type: sequelize.QueryTypes.SELECT }
+                            { replacements: [fromPhone], transaction: t, type: sequelize.QueryTypes.SELECT }
                         );
                         const currentBalance = parseFloat(balanceRows[0].Balance) || 0;
+
+                        // ── Daily / Monthly limit check ──────────────────────
+                        // Runs after the FOR UPDATE lock so concurrent outgoing
+                        // transactions from the same account (SendMoney, Payment,
+                        // Withdraw all take this lock first) are serialized and each one
+                        // sees the others' committed debits (READ_COMMITTED re-snapshots
+                        // per statement). Checked before the balance, as BRD §8.3 requires.
+                        // Pass the full debit (amount + fee) so the check uses the same
+                        // basis as the historical SUM(debit) query in limitChecker.js.
+                        const limitCheck = await checkCustomerLimits(fromPhone, amt + p2pFee, { transaction: t });
+                        if (!limitCheck.allowed) {
+                            const err = new Error('LIMIT_EXCEEDED');
+                            err.limitCheck = limitCheck;
+                            throw err;
+                        }
 
                         if (currentBalance <= 0 || amt + p2pFee > currentBalance) {
                             // Throw to trigger automatic rollback
@@ -116,23 +139,10 @@ async function sendMoney(req, res) {
                             throw err;
                         }
 
-                        // ── Daily / Monthly limit check ──────────────────────
-                        // Runs after the FOR UPDATE lock so concurrent sends from the
-                        // same account are serialized and each one sees the others'
-                        // committed debits (READ_COMMITTED re-snapshots per statement).
-                        // Pass the full debit (amount + fee) so the check uses the same
-                        // basis as the historical SUM(debit) query in limitChecker.js.
-                        const limitCheck = await checkCustomerLimits(from_account, amt + p2pFee, { transaction: t });
-                        if (!limitCheck.allowed) {
-                            const err = new Error('LIMIT_EXCEEDED');
-                            err.limitCheck = limitCheck;
-                            throw err;
-                        }
-
                         const debitTrnx = {
-                            account:          from_account,
-                            from_account:     from_account,
-                            to_account:       to_account,
+                            account:          fromPhone,
+                            from_account:     fromPhone,
+                            to_account:       toPhone,
                             description:      "Send Money",
                             trnxId:           trnxId,
                             debit:            amt + p2pFee,
@@ -140,9 +150,9 @@ async function sendMoney(req, res) {
                             transaction_type: 'SendMoney'
                         };
                         const creditTrnx = {
-                            account:          to_account,
-                            from_account:     from_account,
-                            to_account:       to_account,
+                            account:          toPhone,
+                            from_account:     fromPhone,
+                            to_account:       toPhone,
                             description:      "Send Money",
                             trnxId:           trnxId,
                             debit:            0,
@@ -151,7 +161,7 @@ async function sendMoney(req, res) {
                         };
                         const creditTrnxToSystem = {
                             account:          "SYSTEM",
-                            from_account:     from_account,
+                            from_account:     fromPhone,
                             to_account:       "SYSTEM",
                             description:      "Sendmoney Service Charge",
                             trnxId:           trnxId,
@@ -171,7 +181,7 @@ async function sendMoney(req, res) {
                     message:        "Send money successful",
                     trnxId:         trnxId,
                     fee:            p2pFee,
-                    currentBalance: await getBalance(from_account)
+                    currentBalance: await getBalance(fromPhone)
                 });
 
             } catch (err) {
