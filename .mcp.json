@@ -12,6 +12,17 @@
         "@playwright/mcp@latest"
       ],
       "env": {}
+    },
+    "dmoney-db": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@berthojoris/mcp-mysql-server@1.43.2",
+        "mysql://root:${DMONEY_DB_PASS:-}@localhost:3306/dmoneydb",
+        "list,read,utility,create,update,delete,execute"
+      ],
+      "env": {}
     }
   }
 }
