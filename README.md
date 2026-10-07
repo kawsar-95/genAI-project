@@ -18,7 +18,9 @@ r2sdet_AI/
 │   ├── migrations/           # One-off, idempotent schema scripts
 │   ├── swagger/              # OpenAPI specs (user + transaction)
 │   ├── qa-findings/          # Documented bugs, test cases, charters, security findings
-│   ├── .artifacts/           # AI-generated test cases and analysis reports
+│   ├── .artifacts/           # AI-generated requirement, review, impact, charter, test and result reports
+│   ├── performance/          # k6 load tests (Send Money under a staged load)
+│   ├── .claude/              # Project skills and agents (qa-agent, qa-agent-advocate, …)
 │   └── endpoints.md          # Authoritative endpoint catalog with curl examples
 │
 ├── dmoney-web-react/         # Frontend: Next.js 15 (App Router) + TypeScript + MUI + Tailwind 4
@@ -34,7 +36,9 @@ r2sdet_AI/
 ├── class_notes/              # Course notes and NotebookLM mind maps on AI-driven QA
 ├── graphify-out/             # graphify knowledge graph (graph.json, graph.html, GRAPH_REPORT.md)
 ├── .serena/                  # Serena project config and memories (also one per subproject)
-├── .claude/skills/           # Workspace-level Claude Code skills
+├── .claude/skills/           # Workspace-level Claude Code skills (blast-radius, pr-review, test-design, …)
+├── .claude/agents/           # Workspace-level subagents (qa-reviewer-agent, test-executor-agent)
+├── .mcp.json                 # Project MCP servers (playwright, jira)
 ├── GRAPHIFY_SETUP.md         # How to install graphify and its git hooks
 └── SERENA_SETUP.md           # How to install Serena and its Claude Code hooks
 ```
@@ -77,7 +81,15 @@ For the full business rules (validation, limits, fees, error codes), read the BR
 
 You only need a Stripe test account if you want to use the bank cash-in feature. SMTP or Gmail credentials are optional, because OTPs and reset tokens are also printed to the API console.
 
-The AI tooling is optional too. [uv](https://docs.astral.sh/uv/) and [Claude Code](https://claude.com/claude-code) are only needed for [graphify and Serena](#ai-code-intelligence-graphify-and-serena).
+The AI and testing tooling is optional too:
+
+| Tool | Needed for |
+|---|---|
+| [Claude Code](https://claude.com/claude-code) | The [skills, agents and plugins](#claude-code-skills-agents-and-plugins) |
+| [uv](https://docs.astral.sh/uv/) | [graphify and Serena](#ai-code-intelligence-graphify-and-serena) |
+| [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) | The [performance tests](#performance-testing-k6) |
+| `agent-browser` | UI steps run by `execute-test` / `test-executor-agent` (API steps use `curl`) |
+| [GitHub CLI](https://cli.github.com/) (`gh`) | Skills that read or create issues and PRs (`understand-task`, `pr-review`) |
 
 ---
 
@@ -270,50 +282,133 @@ X-AUTH-SECRET-KEY: ROADTOSDET
 
 ## QA artefacts
 
+**Findings** ([`dmoney-transaction-api/qa-findings/`](dmoney-transaction-api/qa-findings/))
+
 | File | Contents |
 |---|---|
-| [`qa-findings/01-login-auth-bugs.md`](dmoney-transaction-api/qa-findings/01-login-auth-bugs.md) | Login and authorization bugs |
-| [`qa-findings/02-deposit-bugs.md`](dmoney-transaction-api/qa-findings/02-deposit-bugs.md) | Deposit / cash-in bugs |
-| [`qa-findings/03-deposit-test-cases.md`](dmoney-transaction-api/qa-findings/03-deposit-test-cases.md) | Deposit test cases |
-| [`qa-findings/04-security-vulnerabilities.md`](dmoney-transaction-api/qa-findings/04-security-vulnerabilities.md) | 11 confirmed security issues with repro steps and suggested fixes |
-| [`qa-findings/05-deposit-test-charters.md`](dmoney-transaction-api/qa-findings/05-deposit-test-charters.md) | 6 exploratory test charters for deposit / cash-in, plus a session report template |
-| [`qa-findings/06-deposit-cash-in-test-design.md`](dmoney-transaction-api/qa-findings/06-deposit-cash-in-test-design.md) | 64 deposit / cash-in test cases traced to 17 requirement highlights, prioritised High / Mid / Low |
-| [`.artifacts/otp.test.md`](dmoney-transaction-api/.artifacts/otp.test.md) | OTP two-step login test cases |
-| [`.artifacts/transaction-limits.report.md`](dmoney-transaction-api/.artifacts/transaction-limits.report.md) | How customer daily / monthly limits are enforced, and the gaps found |
-| [`.artifacts/blast-radius-vs-graphify.report.md`](dmoney-transaction-api/.artifacts/blast-radius-vs-graphify.report.md) | Comparison of the `blast-radius` skill and the graphify graph for impact analysis |
+| [`01-login-auth-bugs.md`](dmoney-transaction-api/qa-findings/01-login-auth-bugs.md) | Login and authorization bugs |
+| [`02-deposit-bugs.md`](dmoney-transaction-api/qa-findings/02-deposit-bugs.md) | Deposit / cash-in bugs |
+| [`03-deposit-test-cases.md`](dmoney-transaction-api/qa-findings/03-deposit-test-cases.md) | 23 deposit test cases. Section 3 is a prioritised table with a one-line expected result and a type tag (Sanity / Feature / Regression / Security / System Architecture / Non-functional) |
+| [`04-security-vulnerabilities.md`](dmoney-transaction-api/qa-findings/04-security-vulnerabilities.md) | 11 confirmed security issues with repro steps and suggested fixes |
+| [`05-deposit-test-charters.md`](dmoney-transaction-api/qa-findings/05-deposit-test-charters.md) | 6 exploratory test charters for deposit / cash-in, plus a session report template |
+| [`06-deposit-cash-in-test-design.md`](dmoney-transaction-api/qa-findings/06-deposit-cash-in-test-design.md) | 64 deposit / cash-in test cases traced to 17 requirement highlights, prioritised High / Mid / Low |
+| [`07-cash-in-bugs.md`](dmoney-transaction-api/qa-findings/07-cash-in-bugs.md) | 19 cash-in bugs (CASHIN-*) across Deposit, Admin Deposit and Stripe cash-in, such as the missing-account crash, the deposit deadlock and Stripe double credit |
+| [`08-send-money-bugs.md`](dmoney-transaction-api/qa-findings/08-send-money-bugs.md) | 7 Send Money bugs (SM-H01 to SM-L03), filed as GitHub issues #1–#7 |
 
-Before you report a new finding, check these files to see whether it is already known. The charters (05) and test cases (06) were designed from the code and have not been run yet.
+**Generated reports** ([`dmoney-transaction-api/.artifacts/`](dmoney-transaction-api/.artifacts/))
+
+| File(s) | Contents | Made with |
+|---|---|---|
+| [`otp.test.md`](dmoney-transaction-api/.artifacts/otp.test.md) | OTP two-step login test cases | `test-design` |
+| [`transaction-limits.report.md`](dmoney-transaction-api/.artifacts/transaction-limits.report.md) | How customer daily / monthly limits are enforced, and the gaps found | analysis |
+| [`blast-radius-vs-graphify.report.md`](dmoney-transaction-api/.artifacts/blast-radius-vs-graphify.report.md) | Comparison of the `blast-radius` skill and the graphify graph for impact analysis | analysis |
+| `SM-*_requirement.md` (7 files, e.g. [`SM-H01_requirement.md`](dmoney-transaction-api/.artifacts/SM-H01_requirement.md)) | Requirement analysis of each Send Money issue: business flow, scope, risks, gaps and acceptance criteria | `analyze-requirement` |
+| `SM-*_review.md` (7 files, e.g. [`SM-H01_review.md`](dmoney-transaction-api/.artifacts/SM-H01_review.md)) | Code review of PR #8 against each issue: verdict, strengths, issues graded Critical / Important / Minor | `pr-review` |
+| [`PR-8_blast-radius.md`](dmoney-transaction-api/.artifacts/PR-8_blast-radius.md) | Impact of PR #8, with fan-in / fan-out, affected endpoints and pages, and requirement traceability | `blast-radius` |
+| [`PR-8_test-charter.md`](dmoney-transaction-api/.artifacts/PR-8_test-charter.md) | 6 exploratory charters for PR #8 | `test-charter` |
+| [`PR-8.test.md`](dmoney-transaction-api/.artifacts/PR-8.test.md) + [`PR-8.review.md`](dmoney-transaction-api/.artifacts/PR-8.review.md) | 23 test cases + a Basic Test for PR #8, and their evidence map and adversarial review record | `test-design` (API-scoped) + `qa-agent-advocate` |
+| [`PR-8.test-report.md`](dmoney-transaction-api/.artifacts/PR-8.test-report.md) | Execution results for PR #8 (17 pass, 5 failed, 2 not executed). The 5 failures were then fixed in PR #9 | `test-executor-agent` |
+| [`03-deposit-test-cases.test-result.md`](dmoney-transaction-api/.artifacts/03-deposit-test-cases.test-result.md), [`…high-priority.test-result.md`](dmoney-transaction-api/.artifacts/03-deposit-test-cases.high-priority.test-result.md) | Execution results for the deposit test cases (the High-priority run had 13 pass and 2 Stripe cases not executed) | `test-executor-agent` |
+
+Before you report a new finding, check these files to see whether it is already known. The deposit charters (05) and the 64 cases in 06 were designed from the code and have not been run yet.
 
 ---
 
-## Claude Code skills
+## Claude Code skills, agents and plugins
 
-The workspace includes [Claude Code](https://claude.com/claude-code) skills for QA work. Run them as slash commands, for example `/find-bug`.
+The workspace includes [Claude Code](https://claude.com/claude-code) skills and subagents for QA work. Run a skill as a slash command, for example `/find-bug` or `/pr-review 8`. Claude also picks a skill automatically when your request matches its description.
 
-**Workspace level** ([`.claude/skills/`](.claude/skills/))
+### Workspace-level skills ([`.claude/skills/`](.claude/skills/))
+
+| Skill | Purpose | Output |
+|---|---|---|
+| `understand-task` | Explains a GitHub issue/PR or Jira ticket and pulls out its acceptance criteria as a table | Reply |
+| `find-bug` | Full-stack bug hunt on a dMoney module. Reproduces through the UI first (`agent-browser`), then the API, using Serena, graphify and `blast-radius`. Every bug is checked by `qa-reviewer-agent` before it is written | `qa-findings/NN-<module>-bugs.md` |
+| `blast-radius` | Traces everything a change against `main` can affect: importers, **fan-in / fan-out** per file and function (with the change vs `main`), endpoints, frontend pages and DB work inside the lock. Ends with a risk-ranked retest list and, when issues are named, requirement traceability | Reply, or a file on request (e.g. `.artifacts/PR-8_blast-radius.md`) |
+| `pr-review` | Reviews a pull request against the issues it closes, superpowers-style. A fresh read-only reviewer subagent grades findings Critical / Important / Minor. Critical and Important findings are re-verified, and each issue gets a verdict | `.artifacts/<ISSUE ID>_review.md`, one per issue |
+| `test-charter` | Writes session-based exploratory test charters (mission, risks, heuristics, oracles, time-box) and session reports | Reply, or a file on request (e.g. `.artifacts/PR-8_test-charter.md`) |
+| `test-design` | Designs traceable test cases in three sections: Requirement Highlights, Test Cases, and Prioritized Test Titles. The titles section is a table per priority with a **one-line expected result** and a **type tag** (Sanity, Feature, Regression, Security, System Architecture, Non-functional) | Reply or `testing_docs/<ID>.test.md` |
+| `execute-test` | Runs prepared test cases from a `*.test.md` file. UI steps use `agent-browser` and API steps use `curl`. Each case gets pass / failed / not executed | `.artifacts/<module>.test-result.md` |
+
+### Project-level skills (`dmoney-transaction-api/.claude/skills/`, same set in `dmoney-web-react/.claude/skills/`)
+
+These apply when you work on files in that project. Where a name clashes with a workspace skill (`find-bug`, `test-design`), use the scoped name, for example `dmoney-transaction-api:test-design`.
 
 | Skill | Purpose |
 |---|---|
-| `blast-radius` | Traces the full dependency impact of changes against `main` and produces a risk-ranked retest report |
-| `understand-task` | Explains a GitHub issue/PR or Jira ticket and pulls out its acceptance criteria as a table |
-| `test-charter` | Writes session-based exploratory test charters (mission, risks, heuristics, oracles, time-box) and session reports |
-| `test-design` | Designs traceable test cases in three sections: Requirement Highlights, Test Cases, and Prioritized Test Titles |
-| `execute-test` | Runs prepared test cases from a `<JIRA-ID>.test.md` file with `agent-browser` (UI) and `curl` (API) and writes `.artifacts/<JIRA-ID>.test-result.md`. Used by `test-executor-agent` ([`.claude/agents/`](.claude/agents/)) |
-
-**Per project** (`dmoney-transaction-api/.claude/` and `dmoney-web-react/.claude/`)
-
-| Skill | Purpose |
-|---|---|
-| `analyze-requirement` | Turns a requirement into testable acceptance criteria |
-| `test-design` | Designs sanity tests from tickets, PRs or commits |
+| `analyze-requirement` | Turns a requirement into an 8-section analysis (flow, scope, impact, risks, gaps, edge cases) with `AC-n` acceptance criteria |
+| `test-design` | Sanity and regression test design as a 7-section document: Basic Test, new vs related cases, coverage summary. It comes with a review record of evidence, assumptions and bug candidates |
 | `find-bug` | Reviews code, commits or branches for high-confidence bugs |
 | `validate-bug` | Validates a bug with black-, grey- and white-box evidence |
 | `analyze-rootcause` | Finds the most likely root cause from logs and errors |
 | `explain-code` | Explains code flow and business behaviour from the source |
-| `qa-agent` / `qa-agent-advocate` | Full ticket-to-tests analysis, plus an adversarial reviewer |
-| `graphify` | Queries the workspace knowledge graph (see below) |
+| `qa-agent` / `qa-agent-advocate` | Full ticket-to-tests analysis, plus an adversarial reviewer with three modes (context prep, bug review, test case review) |
+
+### Subagents
+
+| Agent | Where | Role |
+|---|---|---|
+| `qa-reviewer-agent` | [`.claude/agents/`](.claude/agents/) | Read-only adversarial reviewer for drafted bugs. It re-derives the requirement using graphify and Serena, then marks each bug APPROVED, FLAGGED or REJECTED. A bug report is written only after it passes |
+| `test-executor-agent` | [`.claude/agents/`](.claude/agents/) | Runs existing test cases through the `execute-test` skill (curl and `agent-browser` only). It never designs tests or raises bugs |
+| `qa-agent` | `<project>/.claude/agents/` | Requirement analysis, bug finding, edge cases and test design |
+| `qa-agent-advocate` | `<project>/.claude/agents/` | Challenges `qa-agent` findings and confirms defects only with hard evidence |
+
+### Plugins, user-level skills and MCP servers
+
+| Name | Type | Used for |
+|---|---|---|
+| [superpowers](https://github.com/obra/superpowers) | Plugin (user scope) | Development workflow skills. `requesting-code-review` is the method behind `pr-review`. Install with `claude plugin marketplace add obra/superpowers-marketplace`, then `claude plugin install superpowers@superpowers-marketplace` |
+| [Serena](https://github.com/oraios/serena) | Plugin (user scope) | Symbol-level code navigation (see below) |
+| `graphify` | User-level skill (`~/.claude/skills/`) | Queries the workspace knowledge graph (see below) |
+| `playwright`, `jira` | Project MCP servers ([`.mcp.json`](.mcp.json)) | Browser automation, and Jira tickets. Jira needs authorising with `/mcp` |
+| `dmoneydb` | User-level MCP server | **Read-only** SQL against the local `dmoneydb`, used to check facts during analysis. Test execution never uses it |
 
 Each project also has a `CLAUDE.md` that gives AI assistants architecture notes and conventions.
+
+### QA workflow
+
+The skills chain into one flow. The Send Money work (issues #1–#7, PRs #8 and #9) followed it end to end:
+
+```
+find-bug ──▶ qa-reviewer-agent ──▶ qa-findings/NN-*-bugs.md ──▶ GitHub issues
+                                                                      │
+analyze-requirement ◀────────────────────────────────────────────────┘   (SM-*_requirement.md)
+      │
+      ▼
+ fix on a branch ──▶ PR ──▶ pr-review (SM-*_review.md) ──▶ blast-radius (PR-N_blast-radius.md)
+                                                                  │
+      ┌───────────────────────────────────────────────────────────┘
+      ▼
+test-charter (PR-N_test-charter.md) ──▶ test-design + qa-agent-advocate (PR-N.test.md / .review.md)
+      │
+      ▼
+test-executor-agent (PR-N.test-report.md) ──▶ fix failures ──▶ re-test ──▶ k6 performance check
+```
+
+---
+
+## Performance testing (k6)
+
+[`dmoney-transaction-api/performance/`](dmoney-transaction-api/performance/) holds k6 load tests. [`sendmoney-concurrency.k6.js`](dmoney-transaction-api/performance/sendmoney-concurrency.k6.js) makes customers send money to each other under a staged load of one minute:
+
+| Time | Users |
+|---|---|
+| 0–30 s | 0 → 3 |
+| 30–50 s | 3 → 10 (7 users join and keep sending) |
+| 50–60 s | 10 → 0 |
+
+```bash
+cd dmoney-transaction-api
+k6 run performance/sendmoney-concurrency.k6.js                          # local API on :5000
+BASE_URL=https://<staging-host> k6 run performance/sendmoney-concurrency.k6.js
+```
+
+- **Which customers.** It reuses existing **active** customers with at least `MIN_BALANCE` (1,000 Tk) and creates no users. Senders rotate so that no customer goes over its remaining daily or monthly limit, which setup works out from the statements.
+- **Pass criteria.** Every send returns 201, none fails or takes 60 s or longer, and none is skipped for lack of limit.
+- **Reference run.** On the local machine, 78 sends had 0 failures, a 95th percentile of 14.5 ms and a maximum of 23 ms.
+- **Running it twice in one day.** Each run uses most of the reused customers' daily limit (10 sends per UTC day). A second run on the same UTC day reports skipped sends.
+
+Options and details are in [`performance/README.md`](dmoney-transaction-api/performance/README.md).
 
 ---
 
@@ -352,4 +447,12 @@ Serena is registered for the root and for each subproject. Only the root project
 - **No automated test suite.** The API's CI workflow runs `npm test`, but `package.json` has no `test` script, so that step fails. The `tests/*.test.js` files are manual scripts: `node tests/sendPersonalEmail.test.js <email>`.
 - **Role checks happen on the backend only.** The frontend's `middleware.ts` only checks that a token cookie exists. Role gating is done by the backend (403) and by the sidebar menu (`LeftMenu.tsx`).
 - `dmoney-web-react/QUICK_START.md` is out of date. Use this README instead.
-- `GET /transaction/limit/:account` always returns `10000` and does not read the `TransactionLimits` table.
+- `GET /transaction/limit/:account` always returns `10000` and does not read the `TransactionLimits` table. Testers have to count today's usage from the statement.
+- **No index on `Transactions.account`.** Balance reads and `SELECT … FOR UPDATE` scan, and lock, the whole table. Money-moving requests therefore wait on each other across all accounts, and response times grow with the table size. The k6 figures above come from a table of about 1,000 rows.
+- **Customer test data runs out daily.** Each customer may make 10 outgoing transactions per UTC day, so repeated test runs need fresh or different customers. Fixture users can only have `@gmail.com` emails, and account status is `active`, `pending` or `suspended` (there is no `inactive`).
+- **Send Money fixes are merged.** Issues #1–#7 were fixed in PR #8, and the defects its test run found were fixed in PR #9:
+  - Payment and Withdraw now check the shared limit inside the lock.
+  - Look-alike phone numbers are resolved to the stored account before the own-account check.
+  - The limit is checked before the balance.
+
+  Two items still need a business decision: the wording of the invalid-amount message (SM-L01), and whether an unquoted JSON `1e1` should be rejected. See [`PR-8.review.md`](dmoney-transaction-api/.artifacts/PR-8.review.md) E7.
