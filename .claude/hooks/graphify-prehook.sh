@@ -32,7 +32,7 @@ head_c=$(git -C "$d" log -1 --format='%cd' --date=format:'%Y-%m-%d %H:%M' 2>/dev
 
 emit "graphify pre-hook ran for the '$skill' skill: $what
 Graph built: $built | latest commit: $head_c (if the commit is newer, the graph may be stale; say so in your output, do not rebuild without asking).
-Use this for domain rules, relationships and known findings. Narrow further with: graphify explain \"<node>\" or graphify path \"<A>\" \"<B>\". The Serena pre-hook has activated the repo's Serena project, so use get_symbols_overview / find_symbol / find_referencing_symbols for code relationships.
+Use this for domain rules, relationships and known findings. Narrow further with: graphify explain \"<node>\" or graphify path \"<A>\" \"<B>\".
 
 $out"
 exit 0

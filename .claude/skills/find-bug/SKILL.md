@@ -1,6 +1,6 @@
 ---
 name: find-bug
-description: Full-stack bug hunt on a dMoney module (API + React frontend). Uses Serena for symbol/caller tracing, graphify for domain knowledge, /blast-radius for change impact, and agent-browser to reproduce through the UI first, falling back to API-only. Outputs a report grouped by High / Medium / Low priority with confidence. Use when the user asks to "find bugs in <module>", "bug hunt", "explore <feature> for defects", or "find-bug".
+description: Full-stack bug hunt on a dMoney module (API + React frontend). Uses Grep/Glob/Read for symbol and caller tracing, graphify for domain knowledge, /blast-radius for change impact, and agent-browser to reproduce through the UI first, falling back to API-only. Outputs a report grouped by High / Medium / Low priority with confidence. Use when the user asks to "find bugs in <module>", "bug hunt", "explore <feature> for defects", or "find-bug".
 ---
 
 # Find Bug (full stack)
@@ -8,7 +8,7 @@ description: Full-stack bug hunt on a dMoney module (API + React frontend). Uses
 Find evidence-backed bugs in a module, reproduce them **frontend first, then API**, and write a two-section report.
 
 **Hard rules**
-1. Serena **and** graphify **and** `/blast-radius` are mandatory in every run (see steps 2-4). Never skip one silently; if one is unavailable, say so in the Summary.
+1. The code trace **and** graphify **and** `/blast-radius` are mandatory in every run (see steps 2-4). Never skip one silently; if one is unavailable, say so in the Summary.
 2. Reproduce through the **frontend first** with `agent-browser`. Only if the UI cannot trigger it, use the backend API alone, and say why.
 3. Every bug's steps use **both channels**: the UI action, then an API check of the result (or the reverse for API-only bugs).
 4. Report only what you observed or traced. A code-only suspicion is allowed but must be labelled so and carry Low/Medium confidence.
@@ -29,12 +29,12 @@ Find evidence-backed bugs in a module, reproduce them **frontend first, then API
 - Read `dmoney-transaction-api/qa-findings/*.md` first. Anything already listed is **KNOWN**: do not re-report it as new (mention it in the Summary if you re-confirmed it).
 - Read the module's BRD section in `dmoney-web-react/README.md` for the expected behaviour.
 
-### 2. Serena: code relationships (mandatory)
-- `activate_project` (the repo root), then use symbolic tools, not whole-file reads:
-  - `get_symbols_overview` on each controller / model / page in scope
-  - `find_symbol` with `include_body=true` only for the functions you need
-  - `find_referencing_symbols` to trace callers and shared helpers (e.g. who calls `getBalance`, `Commission.getConfig`; which pages call each endpoint)
-- Use `search_for_pattern` to find repeated defect patterns across files (same bug in other places).
+### 2. Code trace: code relationships (mandatory)
+- Trace with `Glob`, `Grep` and `Read`, not whole-file reads:
+  - `Glob` for each controller / model / page in scope
+  - `Read` with a line range only for the functions you need
+  - `Grep` to trace callers and shared helpers (e.g. who calls `getBalance`, `Commission.getConfig`; which pages call each endpoint)
+- Use `Grep` to find repeated defect patterns across files (same bug in other places).
 
 ### 3. graphify: domain knowledge (mandatory)
 - Read `graphify-out/GRAPH_REPORT.md`, then query the graph, e.g. `/graphify query "<module> flow"` (add `--dfs` to trace one path).
@@ -44,7 +44,7 @@ Find evidence-backed bugs in a module, reproduce them **frontend first, then API
 ### 4. /blast-radius (mandatory)
 - Invoke the `blast-radius` skill.
 - If it reports changes vs `main`, use its traced impact (affected endpoints, frontend pages, DB, auth) to widen the hunt.
-- If it reports `No changes vs main.`, record that, then apply the same tracing manually for the module: route → controller → model/service → frontend page that calls it (Serena + graphify).
+- If it reports `No changes vs main.`, record that, then apply the same tracing manually for the module: route → controller → model/service → frontend page that calls it (code trace + graphify).
 
 ### 5. Build candidates
 List candidate bugs from steps 2-4 against the BRD. Check at least: validation and boundaries, auth/role/ownership, state (active/suspended), concurrency and atomicity, idempotency, error handling (unhandled rejections, status codes), money precision and rounding, UI/API contract mismatches, UI error/loading states, display of fees and balances.
@@ -110,7 +110,7 @@ File: `dmoney-transaction-api/qa-findings/<NN>-<module>-bugs.md`, where `NN` = h
 |---|---|---|---|---|
 
 - **Scope covered:** files, endpoints, pages.
-- **Tools used:** Serena (what was traced), graphify (graph date, fresh/stale), /blast-radius (result), agent-browser (used / unavailable).
+- **Tools used:** code trace (what was traced), graphify (graph date, fresh/stale), /blast-radius (result), agent-browser (used / unavailable).
 - **Already known (re-confirmed, not re-listed):** IDs from earlier qa-findings.
 - **Not verified / limitations:** anything you could not run or check.
 ````
